@@ -1,0 +1,15 @@
+Package: barbieHistologist
+Version: 0.1
+Date: 2021-03-13
+Title: Barbie do histology
+Authors@R: c(person("Luigi", "Developer", role = c("aut", "cre"),
+                     email = "luigi.dolcetti@kcl.ac.uk"))
+Author: Luigi Dolcetti [aut, cre],
+Maintainer: Luigi Dolcetti <luigi.dolcetti@kcl.ac.uk>
+Depends: 
+Suggests: 
+Description: Barbie do histology
+License: GPL (>= 2)
+URL: https://github.com/luigidolcetti/barbieHistologist.git
+BugReports: https://github.com/luigidolcetti/barbieHistologist.git
+RoxygenNote: 7.1.1
