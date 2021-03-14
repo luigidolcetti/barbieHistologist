@@ -1,5 +1,4 @@
 #' @export
-
 genericShape<-methods::setClass(Class = 'genericShape',
                                 slots = c(majorAxis = 'numeric',
                                           minorAxis = 'numeric',
@@ -19,6 +18,50 @@ genericShape<-methods::setClass(Class = 'genericShape',
                                                   armTrig = c(1,1)))
 
 #' @export
+methods::setMethod('initialize',
+                   'genericShape',
+                   function(.Object,
+                            majorAxis = c(10,1),
+                            minorAxis = c(10,1),
+                            roundness = c(0.8,0.1),
+                            nArms = c(5,1),
+                            armExt = c(1,1),
+                            armElbow = 3,
+                            armSwing = 3,
+                            armTrig = c(1,1),
+                            ...){
+                     .Object <- methods::callNextMethod(.Object, ...)
+                     if (!is.null(majorAxis)){
+                       if (length(majorAxis)!=2) stop('length of one argument is wrong')
+                       .Object@majorAxis <- majorAxis}
+                     if (!is.null(minorAxis)){
+                       if (length(minorAxis)!=2) stop('length of one argument is wrong')
+                       .Object@minorAxis <- minorAxis}
+                     if (!is.null(roundness)){
+                       if (length(roundness)!=2) stop('length of one argument is wrong')
+                       if (roundness[1]<0 | roundness[1]>1) stop('roundness must be <1 and >0')
+                       .Object@roundness <- roundness}
+                     if (!is.null(nArms)){
+                       if (length(nArms)!=2) stop('length of one argument is wrong')
+                       .Object@nArms <- nArms}
+                     if (!is.null(armExt)){
+                       if (length(armExt)!=2) stop('length of one argument is wrong')
+                       .Object@armExt <- armExt}
+                     if (!is.null(armElbow)){
+                       if (length(armElbow)!=1) stop('length of one argument is wrong')
+                       if (armElbow<2) stop('armElbow must be >=2')
+                       .Object@armElbow <- armElbow}
+                     if (!is.null(armSwing)){
+                       if (length(armSwing)!=1) stop('length of one argument is wrong')
+                       .Object@armSwing <- armSwing}
+                     if (!is.null(armTrig)){
+                       if (length(armTrig)!=2) stop('length of one argument is wrong')
+                       .Object@armTrig <- armTrig}
+                     .Object
+                   })
+
+
+#' @export
 methods::setGeneric(name = 'bh_create',
                     signature = 'x',
                     function(x){})
@@ -27,18 +70,24 @@ methods::setMethod(f = 'bh_create',
                    signature = 'genericShape',
                    definition = function(x){
                      
-                     MA <- rnorm(n = 1, x@majorAxis)
-                     MI <- rnorm(n = 1, x@minorAxis)
-                     RO <- rnorm(n = 1, x@roundness)
-                     NR <- rpois(n = 1, x@nArms)
-                     AE <- rnorm(n = NR, MA, x@armExt[2]) * x@armExt[1]
+                     MA <- rnorm(n = 1, mean = x@majorAxis[1],sd = x@majorAxis[2])
+                     MI <- rnorm(n = 1, mean = x@minorAxis[1],sd = x@minorAxis[2])
+                     RO <- rnorm(n = 1, mean = x@roundness[1],sd = x@roundness[2])
+                     NR <- rpois(n = 1, lambda = x@nArms)
+                     if (NR<2) NR<-2
+                     if (NR%%2==1) NR<-NR+1
+                     AE <- rnorm(n = NR, mean = MA, sd = x@armExt[2]) * x@armExt[1]
                      AW <- x@armElbow
                      AS <- x@armSwing
-                     AT <- rnorm(n = NR, x@armTrig)
+                     AT <- rnorm(n = NR, mean = x@armTrig[1],sd = x@armTrig[2])
                      
-                     angl<-sample(1:360,NR)*pi/180
+                     ang1<-sample(1:360,1)
+                     ang2<-ang1+180
+                     angSpread<-90*RO
                      
-                     angl<-sort(angl)
+                     anglLeft<-sample(((-angSpread):(angSpread))+ang1,round(NR/2))*pi/180
+                     anglRight<-sample(((-angSpread):(angSpread))+ang2,round(NR/2))*pi/180
+                     angl<-sort(c(anglLeft,anglRight))
                      
                      skel<-lapply(1:NR,function(i){
                        elbListX<-seq(from = MA,
@@ -62,6 +111,7 @@ methods::setMethod(f = 'bh_create',
                          x2<-x+-sqrt(DD/(1+m1^2))
                          y1<-m1*x1+q1
                          y2<-m1*x2+q1
+                         if(any(is.na(c(x1,y1,x2,y2)))) browser()
                          out<-list(stem=matrix(c(x,y),ncol=2,byrow = T),
                                    branch=matrix(c(x1,y1,x2,y2),ncol=2,byrow=T))
                          return(out)
@@ -90,36 +140,13 @@ methods::setMethod(f = 'bh_create',
                        if (sum(lx[,2])>0) {
                        out<-rbind(lx,rx)} else {
                          out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
-                       # out<-out[order(out[,2],decreasing = T),]
                        })
                      outLine<-do.call(rbind,outLine)
                      outLine<-rbind(outLine,outLine[1,])
                      outLine<-sf::st_polygon(list(outLine))
                      outLine<-sf::st_buffer(outLine,MA/10)
                      outLine<-sf::st_buffer(outLine,-MA/10)
-                     
-                     # spikes<-round(18*RO)
-                     # 
-                     # if (spikes<3) spikes<-3
-                     # 
-                     # angl<-seq(from = 1,
-                     #           to = 360,
-                     #           length.out = spikes)*pi/180
-                     # 
-                     # bodyVertex<-lapply(angl,function(a){
-                     #   x <- cos(a)*MA
-                     #   y <- sin(a)*MI
-                     #   matrix(c(x,y),ncol=2,byrow = T)
-                     # })
-                     # bodyVertex <- do.call(rbind,bodyVertex)
-                     # bodyVertex<-rbind(bodyVertex,bodyVertex[1,])
-                     # 
-                     # rotation<-.rot(sample(1:360,1)*pi/180)
-                     # browser()
-                     # body<-sf::st_polygon(list(t(apply(bodyVertex,1,'*',rotation))))
-                     # 
-                     # finalOutLine<-sf::st_union(body,outLine)
-                     # 
+                      
                      out<-list(stem = stm,
                                branch = brnch,
                                outline = outLine)

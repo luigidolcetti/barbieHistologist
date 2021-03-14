@@ -2,3 +2,4 @@
 
 export(bh_create)
 exportClasses(genericShape)
+exportMethods(initialize)
