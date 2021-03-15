@@ -11,7 +11,7 @@ genericShape<-methods::setClass(Class = 'genericShape',
                                 prototype = list( majorAxis = c(10,1),
                                                   minorAxis = c(10,1),
                                                   roundness = c(0.8,0.1),
-                                                  nArms = c(5,1),
+                                                  nArms = 5,
                                                   armExt = c(1,1),
                                                   armElbow = 3,
                                                   armSwing = 3,
@@ -24,7 +24,7 @@ methods::setMethod('initialize',
                             majorAxis = c(10,1),
                             minorAxis = c(10,1),
                             roundness = c(0.8,0.1),
-                            nArms = c(5,1),
+                            nArms = 5,
                             armExt = c(1,1),
                             armElbow = 3,
                             armSwing = 3,
@@ -42,7 +42,7 @@ methods::setMethod('initialize',
                        if (roundness[1]<0 | roundness[1]>1) stop('roundness must be <1 and >0')
                        .Object@roundness <- roundness}
                      if (!is.null(nArms)){
-                       if (length(nArms)!=2) stop('length of one argument is wrong')
+                       if (length(nArms)!=1) stop('length of one argument is wrong')
                        .Object@nArms <- nArms}
                      if (!is.null(armExt)){
                        if (length(armExt)!=2) stop('length of one argument is wrong')
