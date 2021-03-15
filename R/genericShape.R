@@ -17,6 +17,10 @@ genericShape<-methods::setClass(Class = 'genericShape',
                                                   armSwing = 3,
                                                   armTrig = c(1,1)))
 
+#'@export
+genericShape_NULL<-methods::setClassUnion(name = 'genericShape_NULL',
+                       members = c('genericShape','NULL'))
+
 #' @export
 methods::setMethod('initialize',
                    'genericShape',
@@ -64,11 +68,11 @@ methods::setMethod('initialize',
 #' @export
 methods::setGeneric(name = 'bh_create',
                     signature = 'x',
-                    function(x){})
+                    function(x,...){})
 
 methods::setMethod(f = 'bh_create',
                    signature = 'genericShape',
-                   definition = function(x){
+                   definition = function(x,...){
                      
                      MA <- rnorm(n = 1, mean = x@majorAxis[1],sd = x@majorAxis[2])
                      MI <- rnorm(n = 1, mean = x@minorAxis[1],sd = x@minorAxis[2])

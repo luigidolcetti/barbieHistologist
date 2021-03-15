@@ -6,6 +6,7 @@ Authors@R: c(person("Luigi", "Developer", role = c("aut", "cre"),
                      email = "luigi.dolcetti@kcl.ac.uk"))
 Author: Luigi Dolcetti [aut, cre],
 Maintainer: Luigi Dolcetti <luigi.dolcetti@kcl.ac.uk>
+Imports: raster
 Depends: 
 Suggests: 
 Description: Barbie do histology
@@ -13,3 +14,8 @@ License: GPL (>= 2)
 URL: https://github.com/luigidolcetti/barbieHistologist.git
 BugReports: https://github.com/luigidolcetti/barbieHistologist.git
 RoxygenNote: 7.1.1
+Collate: 
+    'genericShape.R'
+    'genericMarker.R'
+    'Cell.R'
+    'tissue.R'
