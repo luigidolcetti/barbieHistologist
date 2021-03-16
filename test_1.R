@@ -86,4 +86,11 @@ TEMP<-takePicture(tissue = TEMP,
 
 
 raster::plot(TEMP$x.ch1.ch1,col=gray.colors(n = 255,0,1))
+TEMP1<-bh_asSFC(cells = list(CD4=real_CD4,
+                             CD8=real_CD8),
+                compartments = list('cytoplasm','nucleus'))
 plot(TEMP1,add=T,col=NA,border='red')
+
+TEMP2<-bh_asXYZ(tissue = TEMP)
+write.table(TEMP2,
+            "C:/Users/k1343421/Documents/IMC/BarbieHistologist/BH.txt"  )

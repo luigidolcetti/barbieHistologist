@@ -32,9 +32,9 @@ bh_asSFC<-function(cells=NULL,
       out_cmp<-sf::st_multipolygon(out_cmp)
       })
     out_cl<-sf::st_sfc(out_cl)
-    out_cl<-sf::st_sf(data.frame(label = nc,geom = out_cl))
+    out_cl<-sf::st_sf(data.frame(label = nc,geom = out_cl,stringsAsFactors = F))
     })
-  out_cls<-do.call(dplyr::bind_rows,out_cls)
+  out_cls<-do.call(rbind.data.frame,out_cls)
 }
 
   
