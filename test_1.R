@@ -92,5 +92,10 @@ TEMP1<-bh_asSFC(cells = list(CD4=real_CD4,
 plot(TEMP1,add=T,col=NA,border='red')
 
 TEMP2<-bh_asXYZ(tissue = TEMP)
-write.table(TEMP2,
-            "C:/Users/k1343421/Documents/IMC/BarbieHistologist/BH.txt"  )
+
+colnames(TEMP2)<-c('X','Y','ch1-CD45(ch1)','ch2-CD4(ch2)','ch3-CD8(ch3)','ch4-DNA(ch4)')
+write.table(TEMP,"C:/Users/k1343421/Documents/IMC/BarbieHistologist/BH.txt",
+            row.names = F,
+            quote = F,
+            sep='\t')
+
