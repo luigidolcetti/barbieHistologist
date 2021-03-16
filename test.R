@@ -1,3 +1,5 @@
+library(barbieHistologist)
+
 M1<-new('genericMarker',
   marker = 'a',
         channel = 'ch1',
@@ -6,8 +8,8 @@ M1<-new('genericMarker',
 
 M3<-new('genericMarker',
         marker = 'c',
-        channel = 'ch1',
-        pattern = call('.pattern.invConcentric'),
+        channel = 'ch3',
+        pattern = call('.pattern.skin'),
         compartment = 'cytoplasm')
 
 M2<-new('genericMarker',
@@ -34,24 +36,24 @@ TEMP_tissue<-new('tissue',
 raster::plot(TEMP_tissue)
 
 TEMP_Cy<-new('genericShape',
-             majorAxis = c(5,1),
-             minorAxis = c(5,1),
-             roundness = c(1,0.1),
-             nArms = 8,
-             armExt = c(1,1),
-             armElbow = 5,
-             armSwing = 3,
+             majorAxis = c(3,0.1),
+             minorAxis = c(4,0.1),
+             roundness = c(0.5,0.1),
+             nArms = 4,
+             armExt = c(3,0.1),
+             armElbow = 4,
+             armSwing = 1,
              armTrig = c(-5,1))
 
 TEMP_Nc<-new('genericShape',
              majorAxis = c(3,0.1),
              minorAxis = c(3,0.1),
              roundness = c(1,0.1),
-             nArms = 8,
-             armExt = c(1,0.1),
+             nArms = 4,
+             armExt = c(0.2,0.1),
              armElbow = 3,
              armSwing = 1,
-             armTrig = c(-3,1))
+             armTrig = c(-1,1))
 
 TEMP<-bh_create(TEMP_Cy)
 plot(TEMP$outline)
@@ -65,8 +67,8 @@ TEMP_Cell<-new('cellPrototype',
                organelle = NULL,
                markers = list(M1,M2,M3))
 
-TEMP_real<-vector(mode = 'list',length = 4)
-for (i in 1:4){
+TEMP_real<-vector(mode = 'list',length = 10)
+for (i in 1:10){
 TEMP_real[[i]]<-bh_create(x = TEMP_Cell,
       
                      lox = sample(50:450,1),
@@ -74,4 +76,5 @@ TEMP_real[[i]]<-bh_create(x = TEMP_Cell,
 }
 
 TEMP_rst<-takePicture(TEMP_tissue,TEMP_real)
-raster::plot(TEMP_rst)
+raster::plot(TEMP_rst,col=gray.colors(255,start=0,end=1))
+

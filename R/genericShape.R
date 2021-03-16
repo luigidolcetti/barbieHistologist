@@ -19,7 +19,7 @@ genericShape<-methods::setClass(Class = 'genericShape',
 
 #'@export
 genericShape_NULL<-methods::setClassUnion(name = 'genericShape_NULL',
-                       members = c('genericShape','NULL'))
+                                          members = c('genericShape','NULL'))
 
 #' @export
 methods::setMethod('initialize',
@@ -64,7 +64,15 @@ methods::setMethod('initialize',
                      .Object
                    })
 
-
+#' Object instantiation
+#' 
+#' The method bh_create cast a real shape or cell from a prototype.
+#' @param x object of class genericShape or cellPrototype
+#' @param lox numeric.
+#' @param loy numeric, only for cell creation lox and loy are the coordinate
+#'   where to drop the cell
+#' @return a list containing an istantiation of a genericShape or an 
+#'   an object of class cell.
 #' @export
 methods::setGeneric(name = 'bh_create',
                     signature = 'x',
@@ -80,7 +88,9 @@ methods::setMethod(f = 'bh_create',
                      NR <- rpois(n = 1, lambda = x@nArms)
                      if (NR<2) NR<-2
                      if (NR%%2==1) NR<-NR+1
-                     AE <- rnorm(n = NR, mean = MA, sd = x@armExt[2]) * x@armExt[1]
+                     # AE <- rnorm(n = NR, mean = MA, sd = x@armExt[2]) * x@armExt[1]
+                     AE <- rnorm(n = NR, mean = x@armExt[1], sd = x@armExt[2]) *MA 
+                     
                      AW <- x@armElbow
                      AS <- x@armSwing
                      AT <- rnorm(n = NR, mean = x@armTrig[1],sd = x@armTrig[2])
@@ -95,8 +105,8 @@ methods::setMethod(f = 'bh_create',
                      
                      skel<-lapply(1:NR,function(i){
                        elbListX<-seq(from = MA,
-                                    to = MA+AE[i],
-                                    by = AE[i]/AW)
+                                     to = MA+AE[i],
+                                     by = AE[i]/AW)
                        elbListY<-seq(from = MI,
                                      to = MI+AE[i],
                                      by = AE[i]/AW)
@@ -136,21 +146,21 @@ methods::setMethod(f = 'bh_create',
                        sf::st_multilinestring(x = x$branch,dim = 'XYZ')})
                      
                      outLine<-lapply(skel,function(x){
-                    
+                       
                        lx<-lapply(x$branch,function(y) y[c(T,F),])
                        lx <- do.call(rbind,lx)
                        rx<-lapply(x$branch,function(y) y[c(F,T),])
                        rx<-do.call(rbind,rev(rx))
                        if (sum(lx[,2])>0) {
-                       out<-rbind(lx,rx)} else {
-                         out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
-                       })
+                         out<-rbind(lx,rx)} else {
+                           out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
+                     })
                      outLine<-do.call(rbind,outLine)
                      outLine<-rbind(outLine,outLine[1,])
                      outLine<-sf::st_polygon(list(outLine))
                      outLine<-sf::st_buffer(outLine,MA/10)
                      outLine<-sf::st_buffer(outLine,-MA/10)
-                      
+                     
                      out<-list(stem = stm,
                                branch = brnch,
                                outline = outLine)
@@ -158,5 +168,59 @@ methods::setMethod(f = 'bh_create',
                    })
 
 .rot = function(a) matrix(c(cos(a), sin(a)), ncol = 2, nrow = 1)
-                     
-                     
+
+
+
+#' Define a new shape
+#' 
+#' helper function to create a new shape prototype.
+#' @param majorAxis numeric, mean and sd pair.
+#' @param minorAxis numeric, mean and sd pair.
+#' @param nArms numeric, number of arms to be produced. This value is passed to
+#'   rpois to obtain the actual number of arms.
+#' @param armExt numeric, mean and sd pair. Proportion of the major axis.
+#'   E.g. if major axis is 10 AU and arm extent is 1.5 the total lenght of 
+#'   the arm will be approx 15 AU with the branching starting after 10 AU.
+#' @param armElow numeric, number of branching points.
+#' @param armSwing numeric, arm swinging extent in degree.
+#' @param armTrig numeric, mean and sd pair. Determine the behaviour of branches.
+#'   A positive value determine the branches to get longer towards the edge,
+#'   a negative value makes branches to get smaller.
+#' @return An object of class genericShape
+#' @export
+bh_defineShape<-function(majorAxis = NULL,
+                         minorAxis = NULL,
+                         roundness = NULL,
+                         nArms = NULL,
+                         armExt = NULL,
+                         armElbow = NULL,
+                         armSwing = NULL,
+                         armTrig = NULL){
+  
+  if (is.null(majorAxis)) stop('define major axis')
+  if (length(majorAxis)!=2) stop('major axis need a mean and sd')
+  if (is.null(minorAxis)) stop('define minor axis')
+  if (length(minorAxis)!=2) stop('minor axis need a mean and sd')
+  if (is.null(roundness)) stop('define roundness')
+  if (length(roundness)!=2) stop('roundness need a mean and sd')
+  if (is.null(nArms)) stop('define number of arms')
+  if (length(nArms)!=1) stop('number of arms must be a single value')
+  if (is.null(armExt)) stop('define arm extent')
+  if (length(armExt)!=2) stop('arm extension need a mean and sd')
+  if (is.null(armElbow)) stop('define number of arms breaks')
+  if (length(armElbow)!=1) stop('arm elbow need a single value')
+  if (is.null(armSwing)) stop('define a swing value')
+  if (length(armSwing)!=1) stop('arm swing need a single value')
+  if (is.null(armTrig)) stop('define the arm behaviour')
+  if (length(armTrig)!=2) stop('arm behavior need a mean and sd')
+  
+  new('genericShape',
+      majorAxis = majorAxis,
+      minorAxis = minorAxis,
+      roundness = roundness,
+      nArms = nArms,
+      armExt = armExt,
+      armElbow = armElbow,
+      armSwing = armSwing,
+      armTrig = armTrig)
+}

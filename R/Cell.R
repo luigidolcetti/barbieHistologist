@@ -61,3 +61,28 @@ methods::setMethod(f = 'bh_create',
                                   markers = x@markers)
                      
                    })
+
+#' Define a new cell
+#' 
+#' helper function to create a new cell prototype.
+#' @param cytoplasm genericShape.
+#' @param nucleus genericShape.
+#' @param organelle genericSape. (not implemented yet)
+#' @param markers list, makers.
+#' @return An object of class cellPrototype
+#' @export
+bh_defineCell<-function(cytoplasm = NULL,
+                        nucleus = NULL,
+                        organelle = NULL,
+                        markers = NULL){
+  
+  if (is.null(cytoplasm)) stop('a cell needs at least a cytoplasm')
+  if (is.null(markers)) stop('give some markers')
+  if (!is.list(markers)) stop('wrap markers in a list')
+
+  new('cellPrototype',
+      cytoplasm = cytoplasm,
+      nucleus = nucleus,
+      organelle = organelle,
+      markers = markers)
+}
