@@ -117,9 +117,9 @@ methods::setMethod(f = 'bh_create',
                                                        length.out = 10),1)
                          x<-cos(newAngl)*elbListX[ii]
                          y<-sin(newAngl)*elbListY[ii]
-                         m1<--(x/y)
+                         m1<--(y/x)
                          q1<-y-(m1*x)
-                         
+                        
                          if (AT[i]<0) DD<-(AW-ii)*(-AT[i]) else DD<-ii*AT[i]
                          x1<-x+sqrt(DD/(1+m1^2))
                          x2<-x+-sqrt(DD/(1+m1^2))
