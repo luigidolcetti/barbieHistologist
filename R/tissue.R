@@ -27,17 +27,17 @@ methods::setMethod('initialize',
                        # layerName<-mrkr@Rname
                        resolution<-c(xRes,yRes)
                        out<-raster::raster(xmn=xmn,
-                                      ymn=ymn,
-                                      xmx=xmx,
-                                      ymx=ymx,
-                                      resolution=resolution,
-                                      vals=bg)
+                                           ymn=ymn,
+                                           xmx=xmx,
+                                           ymx=ymx,
+                                           resolution=resolution,
+                                           vals=bg)
                        names(out)<-mrkr@Rname
                        return(out)
                      })
                      
                      out<-raster::stack(newRst)
-                  
+                     
                      class(out)<-c('tissue')
                      attr(class(out),'package')<-getPackageName()
                      return(out)
@@ -71,7 +71,7 @@ bh_defineTissue<-function(coords = NULL,
     warning('background is not specified... assuming 0')}
   if (is.null(markers)) stop('give markers')
   if (!is.list(markers)) stop('wrap markers in a list')
-    
+  
   new('tissue',
       xmn = coords[1],
       xmx = coords[2],
@@ -82,14 +82,14 @@ bh_defineTissue<-function(coords = NULL,
       yRes = resolution[2],
       markers = markers)
 }
-                        
+
 
 
 
 
 #' @export
-takePicture<-function(tissue = NULL,
-                      cells = NULL){
+bh_engrave<-function(tissue = NULL,
+                     cells = NULL){
   
   if (is.null(cells)) stop('need cells') else {
     if (!is.list(cells)) stop('need a list of real cells')
@@ -98,8 +98,8 @@ takePicture<-function(tissue = NULL,
   for (cell in cells){
     
     cellTiles<-list(cytoplasm = exactextractr::exact_extract(tissue,sf::st_sfc(cell@cytoplasm$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')],
-                  nucleus = exactextractr::exact_extract(tissue,sf::st_sfc(cell@nucleus$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')])
-     
+                    nucleus = exactextractr::exact_extract(tissue,sf::st_sfc(cell@nucleus$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')])
+    
     for (i in 1:length(cell@markers)){
       compartment<-cell@markers[[i]]@compartment
       lyr<-cell@markers[[i]]@Rname

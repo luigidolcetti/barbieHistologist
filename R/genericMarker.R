@@ -97,6 +97,52 @@
   return(out)
 }
 
+#' @export
+.pattern.skin2<-function(xy=expand.grid(x=1:10,y=1:10),
+                        mean = 10,
+                        sd = 1,
+                        k = 1,
+                        X0 = 0.75,
+                        ...){
+  
+  levelXY<-cbind(xy,n=rep(0,nrow(xy)),l=rep(0,nrow(xy)))
+  # colnames(levelXY)<-c('x','y','n','l')
+  l=1
+  shft<-matrix(c(-1,0,0,1,1,0,0,-1),ncol=2,byrow = T)
+  while (any(levelXY[,'l']==0)){
+    levelXY<-apply(levelXY,1,function(r){
+      if (r['n']==0){
+        cell<-apply(shft,1,function(sh){
+          cc<-which(levelXY[,'x']==r['x']+sh[1] & 
+                      levelXY[,'y']==r['y']+sh[2])
+          
+          if (length(cc)==0) {
+            return(1)} else {
+              levelXY[cc,'n']
+            }
+        })
+        if (sum(cell)>0) {
+          r['n']<-1
+          r['l']<-l}
+        return(r)
+      } else {
+        return(r)
+      }
+    })
+    levelXY<-t(levelXY)
+    l=l+1
+    
+  }
+  X0<-(max(levelXY[,'l'])-min(levelXY[,'l']))*X0
+  
+  logisticLevel<-1/(1+exp(k*(levelXY[,'l']-X0)))
+  z<-rnorm(n = length(xy),mean = mean,sd = sd)*logisticLevel
+  
+  out<-cbind(xy,z)
+  return(out)
+}
+
+
 
 #' @export
 genericMarker<-methods::setClass(Class = 'genericMarker',

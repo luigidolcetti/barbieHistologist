@@ -27,50 +27,67 @@ bh_populate<-function(cellPrototype = NULL,
     newCell<-bh_create(cellPrototype[[newCellType]],
                        lox = position[,'x'],
                        loy = position[,'y'])
-    newComp<-sapply(c('cytoplasm',
-                      'nucleus',
-                      'organelle'),
-                    function(cmp){
-                      
-                      newComp<-slot(newCell,cmp)$outline
-                      if (is.null(newComp)) return(newComp) else {
-                        if (sf::st_geometry_type(newComp)=='POLYGON'){
-                          newComp<-sf::st_difference(newComp,blob) 
-                          if (!sf::st_geometry_type(newComp)=='POLYGON') {
-                            
-                            
-                            newComp<-sf::st_sfc(newComp)
-                            newComp<-sf::st_cast(newComp,'POLYGON')
-                            newComp_list<-vector(mode = 'list',length = length(newComp))
-                            for (i in 1:length(newComp)){
-                              newComp_list[[i]]<-newComp[[i]]}
-                            area_list<-sapply(newComp_list,sf::st_area,simplify = T)
-                              newComp<-newComp_list[[which.max(area_list)]]
-                            
-                          }
-                        }}
-                      return(newComp)
-                    },USE.NAMES = T,simplify = F)
-    for (cmp in c('cytoplasm',
-                  'nucleus',
-                  'organelle')){
-      slot(newCell,cmp)$outline<-newComp[[cmp]]
-      if (is.null(blob)) {blob<-newComp[[cmp]]} else {
-      if (!is.null(newComp[[cmp]])){
-        blob<-sf::st_union(blob,newComp[[cmp]])}
+    newComp<-try(sapply(c('cytoplasm',
+                          'nucleus',
+                          'organelle'),
+                        function(cmp){
+                          
+                          newComp<-slot(newCell,cmp)$outline
+                          if (is.null(newComp)) return(newComp) else {
+                            if (sf::st_geometry_type(newComp)=='POLYGON'){
+                              newComp<-sf::st_difference(newComp,blob) 
+                              if (!sf::st_geometry_type(newComp)=='POLYGON') {
+                                
+                                
+                                newComp<-sf::st_sfc(newComp)
+                                newComp<-sf::st_cast(newComp,'POLYGON')
+                                newComp_list<-vector(mode = 'list',length = length(newComp))
+                                for (i in 1:length(newComp)){
+                                  newComp_list[[i]]<-newComp[[i]]}
+                                area_list<-sapply(newComp_list,sf::st_area,simplify = T)
+                                newComp<-newComp_list[[which.max(area_list)]]
+                                
+                              }
+                            }}
+                          return(newComp)
+                        },USE.NAMES = T,simplify = F))
+    
+    if (!inherits(newComp,'try-error')){
+      for (cmp in c('cytoplasm',
+                    'nucleus',
+                    'organelle')){
+        slot(newCell,cmp)$outline<-newComp[[cmp]]}
+      
+      whichTemp<-sapply(newComp,is.null,simplify = T,USE.NAMES = F)
+      
+      if (length(which(!whichTemp))>1) {
+      unionCell<-sf::st_union(sf::st_sfc(newComp[!whichTemp]))[[1]]} else {
+        unionCell<-newComp[!whichTemp]
       }
+      
+      if (is.null(blob)) {blob<-unionCell} else {
+        
+        dummyBlob<-blob
+        dummyBlob<-try(sf::st_union(dummyBlob,unionCell))
+        
+        if (!inherits(dummyBlob,'try-error')){
+          blob<-dummyBlob
+          
+          areaTot<-sf::st_area(blob)
+          
+          xyCoverage<-exactextractr::exact_extract(possibleXY,sf::st_sfc(blob),include_xy=T)
+          xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
+          possibleXY[xyCoverage]<-1
+          
+          newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
+          newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1
+          
+          setTxtProgressBar(newBar,areaTot)
+          
+          
+        }
       }
-    
-    areaTot<-sf::st_area(blob)
-    
-    xyCoverage<-exactextractr::exact_extract(possibleXY,sf::st_sfc(blob),include_xy=T)
-    xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
-    possibleXY[xyCoverage]<-1
-    
-    newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
-    newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1
-    
-    setTxtProgressBar(newBar,areaTot)
+    }
   }
   close(newBar)
   whichToGetRid<-lapply(newCellList,function(x){

@@ -8,7 +8,7 @@ CD45<-bh_defineMarker(markerName = 'cd45',
 CD4<-bh_defineMarker(markerName = 'cd4',
                      channelName = 'ch2',
                      patternFunction = '.pattern.skin',
-                     patternModifier = list(mean = 10, sd=8,trsh=0.3),
+                     patternModifier = list(mean = 10, sd=8,trsh=0.75),
                      compartment = 'cytoplasm')
 CD8<-bh_defineMarker(markerName = 'cd8',
                      channelName = 'ch3',
@@ -77,12 +77,12 @@ TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2),
                   areaTresh = 0.8)
 
 
-TEMP_pic<-takePicture(tissue = tissue1,
+TEMP_pic<-bh_engrave(tissue = tissue1,
                   cells = TEMP_population$CD4)
-TEMP_pic<-takePicture(tissue = TEMP_pic,
+TEMP_pic<-bh_engrave(tissue = TEMP_pic,
                   cells = TEMP_population$CD8)
 
-TEMP_pic$x.ch1.ch1<-raster::focal(TEMP_pic$x.ch1.ch1,raster::focalWeight(TEMP_pic$x.ch2.ch2, 0.5, "Gauss"))
+# TEMP_pic$x.ch1.ch1<-raster::focal(TEMP_pic$x.ch1.ch1,raster::focalWeight(TEMP_pic$x.ch2.ch2, 0.5, "Gauss"))
 raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
 TEMP1<-bh_asSFC(cells = TEMP_population,
                 compartments = list('cytoplasm','nucleus'))
