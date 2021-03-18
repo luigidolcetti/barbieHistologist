@@ -96,8 +96,10 @@ takePicture<-function(tissue = NULL,
   }
   
   for (cell in cells){
+    
     cellTiles<-list(cytoplasm = exactextractr::exact_extract(tissue,sf::st_sfc(cell@cytoplasm$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')],
                   nucleus = exactextractr::exact_extract(tissue,sf::st_sfc(cell@nucleus$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')])
+     
     for (i in 1:length(cell@markers)){
       compartment<-cell@markers[[i]]@compartment
       lyr<-cell@markers[[i]]@Rname

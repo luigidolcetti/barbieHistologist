@@ -19,4 +19,5 @@ Collate:
     'genericMarker.R'
     'Cell.R'
     'IO.R'
+    'populate.R'
     'tissue.R'

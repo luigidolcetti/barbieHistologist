@@ -21,17 +21,17 @@ DNA<-bh_defineMarker(markerName = 'dna',
                      patternModifier = list(mean = 3, sd=3),
                      compartment = 'nucleus')
 
-cytop1<-bh_defineShape(majorAxis = c(2.5,0.5),
-                   minorAxis = c(2.5,0.5),
-                   roundness = c(0.5,0),
+cytop1<-bh_defineShape(majorAxis = c(6,0.5),
+                   minorAxis = c(6,0.5),
+                   roundness = c(0.7,0),
                    nArms = 8,
                    armExt = c(2,0.1),
                    armElbow = 5,
                    armSwing = 1,
                    armTrig = c(-2,0.1))
 
-cytop2<-bh_defineShape(majorAxis = c(2,0.5),
-                       minorAxis = c(2,0.5),
+cytop2<-bh_defineShape(majorAxis = c(4,0.5),
+                       minorAxis = c(4,0.5),
                        roundness = c(1,0),
                        nArms = 8,
                        armExt = c(1,0.1),
@@ -39,9 +39,9 @@ cytop2<-bh_defineShape(majorAxis = c(2,0.5),
                        armSwing = 1,
                        armTrig = c(-2,0.1))
 
-nuc1<-bh_defineShape(majorAxis = c(0.8,0.001),
-                       minorAxis = c(0.8,0.001),
-                       roundness = c(0.8,0),
+nuc1<-bh_defineShape(majorAxis = c(1.5,0.001),
+                       minorAxis = c(1.5,0.001),
+                       roundness = c(1,0),
                        nArms = 8,
                        armExt = c(1,0),
                        armElbow = 2,
@@ -49,7 +49,7 @@ nuc1<-bh_defineShape(majorAxis = c(0.8,0.001),
                        armTrig = c(-2,0.1))
 
              
-SS1<-bh_create(cytop1)
+SS1<-bh_create(cytop2)
 plot(SS1$outline)
 lapply(SS1$branch,plot,add=T)
 SS2<-bh_create(nuc1)
@@ -65,34 +65,28 @@ cell2<-bh_defineCell(cytoplasm = cytop2,
                      organelle = NULL,
                      markers = list(CD45,CD8,DNA))
 
-tissue1<-bh_defineTissue(coords = c(0,200,0,200),
+tissue1<-bh_defineTissue(coords = c(0,100,0,100),
                          resolution = 1,
                          bg = 0,
                          markers = list(CD45,CD4,CD8,DNA))
 
-real_CD4<-vector(mode = 'list',length = 30)
-for (i in 1:30){
-real_CD4[[i]]<-bh_create(cell1,lox=sample(1:200,1),loy=sample(1:200,1))
-cat(paste0(i,'\r'))
-}
-cat('\n')
-
-real_CD8<-vector(mode = 'list',length = 30)
-for (i in 1:30){
-  real_CD8[[i]]<-bh_create(cell2,lox=sample(1:200,1),loy=sample(1:200,1))
-  cat(paste0(i,'\r'))
-}
-
-TEMP<-takePicture(tissue = tissue1,
-                  cells = real_CD4)
-TEMP<-takePicture(tissue = TEMP,
-                  cells = real_CD8)
+TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2),
+                  cellNames = c('CD4','CD8'),
+                  proportion = c(0.5,0.5),
+                  tissue = tissue1,
+                  areaTresh = 0.8)
 
 
-raster::plot(TEMP$x.ch1.ch1,col=gray.colors(n = 255,0,1))
-TEMP1<-bh_asSFC(cells = list(CD4=real_CD4,
-                             CD8=real_CD8),
+TEMP_pic<-takePicture(tissue = tissue1,
+                  cells = TEMP_population$CD4)
+TEMP_pic<-takePicture(tissue = TEMP_pic,
+                  cells = TEMP_population$CD8)
+
+TEMP_pic$x.ch1.ch1<-raster::focal(TEMP_pic$x.ch1.ch1,raster::focalWeight(TEMP_pic$x.ch2.ch2, 0.5, "Gauss"))
+raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
+TEMP1<-bh_asSFC(cells = TEMP_population,
                 compartments = list('cytoplasm','nucleus'))
+
 plot(TEMP1,add=T,col=NA,border='red')
 plot(TEMP1)
 TEMP2<-bh_asXYZ(tissue = TEMP)
