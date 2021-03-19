@@ -23,7 +23,7 @@ bh_asSFC<-function(cells=NULL,
   if (is.null(compartments)) stop('specify a list of compartments')
   
   cellNames<-names(cells)
-  out_cls<-lapply(cellNames,function(nc){
+  out_cls<-sapply(cellNames,function(nc){
     cls<-cells[[nc]]
     out_cl<-lapply(cls,function(cl){
       out_cmp<-lapply(compartments,function(cmp){
@@ -66,9 +66,10 @@ bh_asSFC<-function(cells=NULL,
       #   out_cmp<-sf::st_multipolygon(out_cmp)}
       # }
     })
-    out_cl<-sf::st_sfc(out_cl)
+    
+    if (length(out_cl)>0) out_cl<-sf::st_sfc(out_cl) else out_cl<-sf::st_sfc(NULL)
     out_cl<-sf::st_sf(data.frame(label = nc,geom = out_cl,stringsAsFactors = F))
-  })
+  },simplify = F)
   out_cls<-do.call(rbind.data.frame,out_cls)
 }
 
