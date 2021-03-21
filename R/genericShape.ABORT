@@ -125,7 +125,7 @@ methods::setMethod(f = 'bh_create',
                          x2<-x+-sqrt(DD/(1+m1^2))
                          y1<-m1*x1+q1
                          y2<-m1*x2+q1
-                         if(any(is.na(c(x1,y1,x2,y2)))) browser()
+                         if(any(is.na(c(x1,y1,x2,y2)))) 
                          out<-list(stem=matrix(c(x,y),ncol=2,byrow = T),
                                    branch=matrix(c(x1,y1,x2,y2),ncol=2,byrow=T))
                          return(out)
@@ -135,35 +135,41 @@ methods::setMethod(f = 'bh_create',
                        out_stem<-rbind(matrix(c(0,0),ncol = 2,byrow = T),
                                        out_stem)
                        out_branch<-lapply(elb,function(x)unlist(x$branch,recursive = F))[-1]
+                       # 
+                       # 
                        
                        out<-list(stem=out_stem,
                                  branch=out_branch)
                        return(out)
                      })
                      
-                     stm<-sf::st_multilinestring(x = lapply(skel,function(x)unlist(x$stem,recursive = F)),dim = 'XYZ')
-                     brnch<-lapply(skel,function(x){
-                       sf::st_multilinestring(x = x$branch,dim = 'XYZ')})
+                      stm<-sf::st_multilinestring(x = lapply(skel,function(x)unlist(x$stem,recursive = F)),dim = 'XYZ')
+                      brnch<-lapply(skel,function(x){
+                        sf::st_multilinestring(x = x$branch,dim = 'XYZ')})
                      
-                     outLine<-lapply(skel,function(x){
+                      browser()
                        
-                       lx<-lapply(x$branch,function(y) y[c(T,F),])
-                       lx <- do.call(rbind,lx)
-                       rx<-lapply(x$branch,function(y) y[c(F,T),])
-                       rx<-do.call(rbind,rev(rx))
-                       if (sum(lx[,2])>0) {
-                         out<-rbind(lx,rx)} else {
-                           out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
-                     })
-                     outLine<-do.call(rbind,outLine)
-                     outLine<-rbind(outLine,outLine[1,])
-                     outLine<-sf::st_polygon(list(outLine))
-                     outLine<-sf::st_buffer(outLine,MA/10)
-                     outLine<-sf::st_buffer(outLine,-MA/10)
-                     
-                     out<-list(stem = sf::st_sfc(stm),
-                               branch = sf::st_sfc(brnch),
-                               outline = sf::st_sfc(outLine))
+                     # outLine<-lapply(skel,function(x){
+                     #   
+                     #   lx<-lapply(x$branch,function(y) y[c(T,F),])
+                     #   lx <- do.call(rbind,lx)
+                     #   rx<-lapply(x$branch,function(y) y[c(F,T),])
+                     #   rx<-do.call(rbind,rev(rx))
+                     #   if (sum(lx[,2])>0) {
+                     #     out<-rbind(lx,rx)} else {
+                     #       out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
+                     # })
+                     # outLine<-do.call(rbind,outLine)
+                     # outLine<-rbind(outLine,outLine[1,])
+                     # outLine<-sf::st_polygon(list(outLine))
+                     # outLine<-sf::st_buffer(outLine,MA/10)
+                     # outLine<-sf::st_buffer(outLine,-MA/10)
+                     # 
+                     # 
+                     outLine<-sf::st_convex_hull(sf::st_union(skel$stem,skel$branch))
+                     out<-list(stem = skel$stem,
+                               branch = skel$branch,
+                               outline = outLine)
                      return(out)
                    })
 

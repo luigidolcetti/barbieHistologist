@@ -97,17 +97,30 @@ bh_engrave<-function(tissue = NULL,
   
   for (cell in cells){
     
-    cellTiles<-list(cytoplasm = exactextractr::exact_extract(tissue,sf::st_sfc(cell@cytoplasm$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')],
-                    nucleus = exactextractr::exact_extract(tissue,sf::st_sfc(cell@nucleus$outline),include_xy=T)[[1]][,c('x','y','coverage_fraction')])
+    cellTiles<-sapply(c('cytoplasm',
+                        'nucleus',
+                        'organelle'),
+                      function(comp){
+                        
+                        newComp<-slot(cell,comp)$outline
+                        if (!sf::st_is_empty(newComp)){
+                          cellTiles<-exactextractr::exact_extract(tissue,sf::st_sf(newComp),include_xy=T)
+                          cellTiles<-do.call(rbind,cellTiles)
+                          cellTiles<-cellTiles[,c('x','y','coverage_fraction')]
+                        }
+                      },simplify = F,USE.NAMES = T)
     
     for (i in 1:length(cell@markers)){
       compartment<-cell@markers[[i]]@compartment
       lyr<-cell@markers[[i]]@Rname
+      if (!is.null(cellTiles[[compartment]])){
+        if (nrow(cellTiles[[compartment]])!=0){
       newCall<-rlang::call_modify(cell@markers[[i]]@pattern,xy=cellTiles[[compartment]][,1:2])
-      # newTiles<-cell@markers[[lyr]]@pattern(xy=cellTiles[[compartment]][,1:2]) 
       newTiles<-eval(newCall)
       newTiles[newTiles[,3]<0,3]<-0
       tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-newTiles[,3]*cellTiles[[compartment]][,3]
+        }
+      }
     }
   }
   return(tissue)

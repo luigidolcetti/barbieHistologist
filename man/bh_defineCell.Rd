@@ -5,6 +5,7 @@
 \title{Define a new cell}
 \usage{
 bh_defineCell(
+  name = NULL,
   cytoplasm = NULL,
   nucleus = NULL,
   organelle = NULL,

@@ -161,9 +161,9 @@ methods::setMethod(f = 'bh_create',
                      outLine<-sf::st_buffer(outLine,MA/10)
                      outLine<-sf::st_buffer(outLine,-MA/10)
                      
-                     out<-list(stem = sf::st_sfc(stm),
-                               branch = sf::st_sfc(brnch),
-                               outline = sf::st_sfc(outLine))
+                     out<-list(stem = stm,
+                               branch = brnch,
+                               outline = outLine)
                      return(out)
                    })
 

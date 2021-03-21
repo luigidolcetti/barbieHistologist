@@ -136,7 +136,7 @@
   X0<-(max(levelXY[,'l'])-min(levelXY[,'l']))*X0
   
   logisticLevel<-1/(1+exp(k*(levelXY[,'l']-X0)))
-  z<-rnorm(n = length(xy),mean = mean,sd = sd)*logisticLevel
+  z<-rnorm(n = nrow(xy),mean = mean,sd = sd)*logisticLevel
   
   out<-cbind(xy,z)
   return(out)

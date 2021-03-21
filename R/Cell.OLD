@@ -63,30 +63,25 @@ methods::setMethod(f = 'bh_create',
                      # browser()
                      if (!is.null(x@cytoplasm)) {
                        cytoplasm<-bh_create(x@cytoplasm)
-                       cytoplasm<-sapply(cytoplasm,'+',c(lox,loy),simplify = F,USE.NAMES = T)
-                     } else {
-                       cytoplasm<-list()
-                       cytoplasm$stem<-sf::st_sfc(NULL)
-                       cytoplasm$branch<-sf::st_sfc(NULL)
-                       cytoplasm$outline<-sf::st_sfc(NULL)}
+                       cytoplasm$stem<-cytoplasm$stem+c(lox,loy)
+                       cytoplasm$branch<-lapply(cytoplasm$branch,'+',c(lox,loy))
+                       cytoplasm$outline<-cytoplasm$outline+c(lox,loy)
+                     } else cytoplasm<-list()
                      
                      if (!is.null(x@nucleus)) {
                        nucleus<-bh_create(x@nucleus)
-                       nucleus<-sapply(nucleus,'+',c(lox,loy),simplify = F,USE.NAMES = T)
-                     } else {
-                       nucleus<-list()
-                       nucleus$stem<-sf::st_sfc(NULL)
-                       nucleus$branch<-sf::st_sfc(NULL)
-                       nucleus$outline<-sf::st_sfc(NULL)}
+                       nucleus$stem<-nucleus$stem+c(lox,loy)
+                       nucleus$branch<-lapply(nucleus$branch,'+',c(lox,loy))
+                       nucleus$outline<-nucleus$outline+c(lox,loy)
+                     } else nucleus<-list()
                      
                      if (!is.null(x@organelle)) {
                        organelle<-bh_create(x@organelle)
-                       organelle<-sapply(organelle,'+',c(lox,loy),simplify = F,USE.NAMES = T)
-                     } else {
-                       organelle<-list()
-                       organelle$stem<-sf::st_sfc(NULL)
-                       organelle$branch<-sf::st_sfc(NULL)
-                       organelle$outline<-sf::st_sfc(NULL)}
+                       organelle$stem<-organelle$stem+c(lox,loy)
+                       organelle$branch<-lapply(organelle$branch,'+',c(lox,loy))
+                       organelle$outline<-organelle$outline+c(lox,loy)
+                     } else organelle<-list()
+                     
                      
                      newCell<-new('cell',
                                   name = x@name,
@@ -124,18 +119,3 @@ bh_defineCell<-function(name = NULL,
       organelle = organelle,
       markers = markers)
 }
-
-#'@export
-bh_clone<-function(cell,
-                   lox,
-                   loy){
-  for (comp in c('cytoplasm','nucleus','organelle')){
-    oldConf<-slot(cell,comp)
-    for (st in c('stem','branch','outline')){
-      # browser()
-      oldConfSt<-oldConf[[st]]
-      cntrd<-sf::st_centroid(oldConfSt)
-      newConf<-oldConfSt-cntrd+c(lox,loy)
-      oldConf[[st]]<-newConf}
-    slot(cell,comp)<-oldConf}
-  return(cell)}

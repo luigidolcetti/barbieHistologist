@@ -1,0 +1,304 @@
+#' @export
+bh_populate<-function(cellPrototype = NULL,
+                      proportion = NULL,
+                      maxCloning = 10,
+                      tissue = NULL,
+                      areaTresh = NULL){
+  
+  
+  
+  areaTot<-0
+  cloningI<-maxCloning+1
+  lim <-raster::extent(tissue)
+  res <-raster::res(tissue)
+  minResHalf<-min(res)
+  cellNames<-sapply(cellPrototype,names,simplify = T,USE.NAMES = F)
+  
+  blob<-sf::st_sfc(NULL,crs = 'NA',precision = minResHalf)
+  possibleXY<-raster::raster(vals=0,ext=lim,resolution=res)
+  areaTresh<-(lim[2]-lim[1])*(lim[4]-lim[3])*areaTresh
+  
+  newCellList<-sapply(1:length(cellNames),function(clnms){
+    vector('list',round(areaTresh*proportion[clnms]))},simplify = F,USE.NAMES = F)
+  
+  names(newCellList)<-cellNames
+  newCellType_counter<-rep(1,length(cellNames))
+  names(newCellType_counter)<-cellNames
+  
+  # newBar<-utils::txtProgressBar(min=0,max=areaTresh,initial=0,style=3)
+  
+  while(areaTot<areaTresh){
+    
+    if (cloningI>maxCloning){
+    newCellType<-sample(1:length(cellPrototype),1,prob = proportion)
+    
+    position<-raster::Which(possibleXY==0,cells=T)
+    position<-sample(position,1)
+    position<-raster::xyFromCell(object = tissue,cell = position)
+    
+    newCellClone<-bh_create(cellPrototype[[newCellType]],
+                       lox = position[,'x'],
+                       loy = position[,'y'])
+    
+    newCell<-newCellClone
+    cloningI <-1
+    cat('---> created new cell clone\n')
+    } else {
+      position<-raster::Which(possibleXY==0,cells=T)
+      position<-sample(position,1)
+      position<-raster::xyFromCell(object = tissue,cell = position)
+      
+      newCell<-bh_clone(cell = newCellClone,
+                        lox = position[,'x'],
+                        loy = position[,'y'])
+      cloningI <- cloningI+1
+    }
+    
+    ################################
+    newComp<-try(sapply(c('cytoplasm',
+                          'nucleus',
+                          'organelle'),
+                        function(cmp){
+                          
+                          newComp<-slot(newCell,cmp)$outline
+                          
+                          sf::st_precision(newComp)<-minResHalf
+                          sf::st_crs(newComp)<-'NA'
+                          
+                          if (sf::st_is_empty(newComp)){ 
+                            return(newComp) } else {
+                              
+                              if (sf::st_geometry_type(newComp)=='POLYGON'){
+                                
+                                newComp<-sf::st_difference(newComp,blob) 
+                                
+                                if(length(newComp)>0) {
+                                  
+                                  if (sf::st_geometry_type(newComp)!='POLYGON') {
+                                    newComp<-sf::st_cast(newComp,'POLYGON')
+                                    newComp_area<-sf::st_area(newComp)
+                                    newComp<-newComp[which.max(newComp_area)]
+                                  }
+                                } else {
+                                  newComp <- sf::st_sfc(NULL)}
+                              }
+                            }
+                          return(newComp)
+                        },USE.NAMES = T,simplify = F),silent = T)
+    #############################
+    
+    
+    if (inherits(newComp,'try-error')){ 
+      cat('x-->bad cell\n')
+      next
+    }
+    
+    for (cmp in c('cytoplasm',
+                  'nucleus',
+                  'organelle')){
+      slot(newCell,cmp)$outline<-newComp[[cmp]]
+    }
+    
+    unionCell<-try(sf::st_union(do.call(c,newComp),crs = 'NA',precision = minResHalf),silent = T)
+    
+    if (inherits(unionCell,'try-error')){
+      cat('xx->bad union cell\n')
+      next
+    }
+    
+    dummyBlob<-blob
+    dummyBlob<-try(sf::st_union(dummyBlob,unionCell),silent = T)
+    
+    
+    if (inherits(dummyBlob,'try-error')) {
+      blob<-sf::st_simplify(blob)
+      bad('xxx>bad cell-blob union\n')
+      next
+    }
+    
+    dummyBlob<-try(sf::st_buffer(sf::st_buffer(dummyBlob,minResHalf),-minResHalf),T)
+  
+  # if (!inherits(dummyBlob,'try-error')){
+  # dummyBlob<-try(sf::st_simplify(dummyBlob,
+  #                                preserveTopology = T,
+  #                                dTolerance = minResHalf*3))
+  
+  # if (inherits(dummyBlob,'try-error')){
+  # dummyBlob<-blob
+  # dummyBlob<-try(sf::st_union(dummyBlob,unionCell))
+  # if (!inherits(dummyBlob,'try-error')){
+  #   
+  #   dummyBlob<-try(rmapshaper::ms_simplify(rmapshaper::ms_dissolve(sf::st_sfc(dummyBlob)),keep_shapes = T,keep = 0.5))}}
+  
+  if (inherits(dummyBlob,'try-error')){
+    cat('xxxxbad blob buffering\n')
+    next
+  }
+  
+  blob<-dummyBlob
+  areaTot<-sf::st_area(blob)
+  xyCoverage<-exactextractr::exact_extract(possibleXY,sf::st_sfc(blob),include_xy=T)
+  xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
+  possibleXY[xyCoverage]<-1
+  newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
+  newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1
+  
+  cat(paste0('area ratio: ',scales::label_percent(accuracy = 0.1)(areaTot/areaTresh),'\n'))
+  # setTxtProgressBar(newBar,areaTot)
+  
+}  
+
+# close(newBar)
+whichToGetRid<-lapply(newCellList,function(x){
+  sapply(x,is.null,simplify = T)})
+out_newCellList<-lapply(1:length(newCellList),function(x){
+  newCellList[[x]][!whichToGetRid[[x]]]})
+names(out_newCellList)<-names(newCellList)
+return(out_newCellList)
+}
+
+
+
+#' @export
+bh_populate2<-function(cellPrototype = NULL,
+                      proportion = NULL,
+                      maxCloning = 10,
+                      tissue = NULL,
+                      areaTresh = NULL){
+  areaTot<-0
+  cloningI<-maxCloning+1
+  lim <-raster::extent(tissue)
+  bbox<-matrix(c(lim[1],lim[3],
+                 lim[1],lim[4],
+                 lim[2],lim[4],
+                 lim[2],lim[3],
+                 lim[1],lim[3]),ncol = 2,byrow = T)
+  res <-raster::res(tissue)
+  minResHalf<-min(res)
+  cellNames<-sapply(cellPrototype,names,simplify = T,USE.NAMES = F)
+  
+  blob<-sf::st_sfc(NULL,crs = 'NA',precision = minResHalf)
+  antiBlob_ref<-sf::st_sfc(sf::st_polygon(list(bbox)),crs='NA',precision=minResHalf)
+  antiBlob<-antiBlob_ref
+  # possibleXY<-raster::raster(vals=0,ext=lim,resolution=res)
+  areaTresh<-(lim[2]-lim[1])*(lim[4]-lim[3])*areaTresh
+  
+  newCellList<-sapply(1:length(cellNames),function(clnms){
+    vector('list',round(areaTresh*proportion[clnms]))},simplify = F,USE.NAMES = F)
+  
+  names(newCellList)<-cellNames
+  newCellType_counter<-rep(1,length(cellNames))
+  names(newCellType_counter)<-cellNames
+  
+  newBar<-utils::txtProgressBar(min=0,max=areaTresh,initial=0,style=3)
+  
+  while(areaTot<areaTresh){
+    
+    position<-unlist(sf::st_sample(antiBlob,1))
+    names(position)<-c('x','y')
+    
+    
+    
+    if (cloningI>maxCloning){
+      newCellType<-sample(1:length(cellPrototype),1,prob = proportion)
+      newCellClone<-bh_create(cellPrototype[[newCellType]],
+                              lox = position['x'],
+                              loy = position['y'])
+      
+      newCell<-newCellClone
+      cloningI <-1} else {
+        newCell<-bh_clone(cell = newCellClone,
+                          lox = position['x'],
+                          loy = position['y'])
+        cloningI <- cloningI+1
+      }
+    
+    ################################
+    newComp<-try(sapply(c('cytoplasm',
+                          'nucleus',
+                          'organelle'),
+                        function(cmp){
+                          
+                          newComp<-slot(newCell,cmp)$outline
+                          
+                          sf::st_precision(newComp)<-minResHalf
+                          sf::st_crs(newComp)<-'NA'
+                          
+                          if (sf::st_is_empty(newComp)){ 
+                            return(newComp) } else {
+                              
+                              if (sf::st_geometry_type(newComp)=='POLYGON'){
+                                
+                                newComp<-sf::st_difference(newComp,blob) 
+                                
+                                if(length(newComp)>0) {
+                                  
+                                  if (sf::st_geometry_type(newComp)!='POLYGON') {
+                                    newComp<-sf::st_cast(newComp,'POLYGON')
+                                    newComp_area<-sf::st_area(newComp)
+                                    newComp<-newComp[which.max(newComp_area)]
+                                  }
+                                } else {
+                                  newComp <- sf::st_sfc(NULL)}
+                              }
+                            }
+                          return(newComp)
+                        },USE.NAMES = T,simplify = F))
+    #############################
+    
+    
+    if (inherits(newComp,'try-error')) next
+    
+    for (cmp in c('cytoplasm',
+                  'nucleus',
+                  'organelle')){
+      slot(newCell,cmp)$outline<-newComp[[cmp]]
+    }
+    
+    unionCell<-try(sf::st_union(do.call(c,newComp),crs = 'NA',precision = minResHalf))
+    
+    if (inherits(unionCell,'try-error')) next
+    
+    dummyBlob<-blob
+    dummyBlob<-try(sf::st_union(dummyBlob,unionCell))
+    
+    
+    if (inherits(dummyBlob,'try-error')) next
+    
+    dummyBlob<-try(sf::st_buffer(sf::st_buffer(dummyBlob,minResHalf),-minResHalf))
+    
+    # if (!inherits(dummyBlob,'try-error')){
+    # dummyBlob<-try(sf::st_simplify(dummyBlob,
+    #                                preserveTopology = T,
+    #                                dTolerance = minResHalf*3))
+    
+    # if (inherits(dummyBlob,'try-error')){
+    # dummyBlob<-blob
+    # dummyBlob<-try(sf::st_union(dummyBlob,unionCell))
+    # if (!inherits(dummyBlob,'try-error')){
+    #   
+    #   dummyBlob<-try(rmapshaper::ms_simplify(rmapshaper::ms_dissolve(sf::st_sfc(dummyBlob)),keep_shapes = T,keep = 0.5))}}
+    
+    if (inherits(dummyBlob,'try-error')) next
+    
+    blob<-dummyBlob
+    areaTot<-sf::st_area(blob)
+    antiBlob<-sf::st_difference(antiBlob_ref,blob)
+    # xyCoverage<-exactextractr::exact_extract(possibleXY,sf::st_sfc(blob),include_xy=T)
+    # xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
+    # possibleXY[xyCoverage]<-1
+    newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
+    newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1
+    
+    setTxtProgressBar(newBar,areaTot)
+    
+  }  
+  
+  close(newBar)
+  whichToGetRid<-lapply(newCellList,function(x){
+    sapply(x,is.null,simplify = T)})
+  out_newCellList<-lapply(1:length(newCellList),function(x){
+    newCellList[[x]][!whichToGetRid[[x]]]})
+  names(out_newCellList)<-names(newCellList)
+  return(out_newCellList)
+}
