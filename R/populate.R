@@ -133,27 +133,35 @@ bh_populate<-function(cellPrototype = NULL,
     out<-sf::st_sf(data.frame(ID=1:length(out),
                               cell=Ncls,
                               geom=out))
-                              
+    
     
     return(out)
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
   molds<-sf::st_difference(bodyOnly)
-
+  
   for (i in 1:nrow(molds)){
     mold<-molds[i,'geometry']
     index<-unlist(sf::st_drop_geometry(molds[i,'ID']))
     cell<-as.character(unlist(sf::st_drop_geometry(molds[i,'cell'])))
     for (compartment in c('cytoplasm','nucleus','organelle')){
-    oldGeom<-slot(out_newCellList[[cell]][[index]],compartment)$outline
-    newGeom<-sf::st_intersection(oldGeom,mold)
-    # par(mfrow=c(1,3))
-    # try(plot(mold))
-    # try(plot(oldGeom))
-    # try(plot(newGeom))
-    if (length(newGeom)==0) newGeom<-sf::st_sfc(NULL)
-    slot(out_newCellList[[cell]][[index]],compartment)$outline<-newGeom
+      oldGeom<-slot(out_newCellList[[cell]][[index]],compartment)$outline
+      newGeom<-sf::st_intersection(oldGeom,mold)
+      
+      # par(mfrow=c(1,3))
+      # try(plot(mold))
+      # try(plot(oldGeom))
+      # try(plot(newGeom))
+      if (length(newGeom)==0) newGeom<-sf::st_sfc(NULL) else{
+        if (any(class(newGeom)=='sfc_GEOMETRYCOLLECTION')) {
+          stArea<-sapply(newGeom[[1]],sf::st_area,simplify = T,USE.NAMES = F)
+          maxStArea<-which.max(stArea)[1]
+          stGeom<-lapply(newGeom[[1]],sf::st_sfc)
+          newGeom<-stGeom[[maxStArea]]
+        }
+      }
+      slot(out_newCellList[[cell]][[index]],compartment)$outline<-newGeom
     }
   }
   

@@ -3,7 +3,7 @@ library(barbieHistologist)
 CD45<-bh_defineMarker(markerName = 'cd45',
                       channelName = 'ch1',
                       patternFunction = '.pattern.random',
-                      patternModifier = list(mean = 5, sd=2),
+                      patternModifier = list(mean = 5, sd=5),
                       compartment = 'cytoplasm')
 CD4<-bh_defineMarker(markerName = 'cd4',
                      channelName = 'ch2',
@@ -13,27 +13,27 @@ CD4<-bh_defineMarker(markerName = 'cd4',
 CD8<-bh_defineMarker(markerName = 'cd8',
                      channelName = 'ch3',
                      patternFunction = '.pattern.skin2',
-                     patternModifier = list(mean = 4, sd=2,k=3,X0=0.3 ),
+                     patternModifier = list(mean = 4, sd=4,k=3,X0=0.3 ),
                      compartment = 'cytoplasm')
 CD11c<-bh_defineMarker(markerName = 'cd11c',
                        channelName = 'ch4',
                        patternFunction = '.pattern.skin2',
-                       patternModifier = list(mean = 4, sd=2,k=3,X0=0.3 ),
+                       patternModifier = list(mean = 4, sd=2,k=3,X0=0.7 ),
                        compartment = 'cytoplasm')
 CD1000Low<-bh_defineMarker(markerName = 'cd1000',
                            channelName = 'ch5',
                            patternFunction = '.pattern.random',
-                           patternModifier = list(mean = 2, sd=1),
+                           patternModifier = list(mean = 2, sd=3),
                            compartment = 'cytoplasm')
 CD1000high<-bh_defineMarker(markerName = 'cd1000',
                             channelName = 'ch5',
                             patternFunction = '.pattern.random',
-                            patternModifier = list(mean = 5, sd=4),
+                            patternModifier = list(mean = 8, sd=4),
                             compartment = 'cytoplasm')
 DNA<-bh_defineMarker(markerName = 'dna',
                      channelName = 'ch6',
                      patternFunction = '.pattern.random',
-                     patternModifier = list(mean = 3, sd=3),
+                     patternModifier = list(mean = 10, sd=5),
                      compartment = 'nucleus')
 
 
@@ -45,11 +45,11 @@ DNA<-bh_defineMarker(markerName = 'dna',
 
 
 cytop1<-bh_defineShape(majorAxis = c(6,0.5),
-                       minorAxis = c(10,0.5),
+                       minorAxis = c(6,0.5),
                        roundness = c(1,0),
                        nArms = 8,
-                       armExt = c(1,0.1),
-                       armElbow = 2,
+                       armExt = c(1.2,0.1),
+                       armElbow = 3,
                        armSwing = 1,
                        armTrig = c(-2,0.1))
 
@@ -62,14 +62,14 @@ cytop2<-bh_defineShape(majorAxis = c(4,0.5),
                        armSwing = 2,
                        armTrig = c(-2,0.1))
 
-nuc1<-bh_defineShape(majorAxis = c(2.5,0.001),
-                     minorAxis = c(2.5,0.001),
+nuc1<-bh_defineShape(majorAxis = c(3,0.001),
+                     minorAxis = c(3,0.001),
                      roundness = c(1,0),
-                     nArms = 5,
+                     nArms = 8,
                      armExt = c(1,0),
                      armElbow = 2,
                      armSwing = 0,
-                     armTrig = c(-2,0.1))
+                     armTrig = c(-1,0.1))
 
 
 # SS1<-bh_create(cytop2)
@@ -107,7 +107,7 @@ cell5<-bh_defineCell(name = 'dendr',
                      markers = list(CD45,DNA,CD11c))
 
 
-tissue1<-bh_defineTissue(coords = c(0,500,0,500),
+tissue1<-bh_defineTissue(coords = c(0,300,0,300),
                          resolution = 1,
                          bg = 0,
                          markers = list(CD45,CD4,CD8,DNA,CD11c,CD1000high))
@@ -116,7 +116,7 @@ TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5)
                              proportion = c(0.3,0.15,0.3,0.15,0.1),
                              tissue = tissue1,
                              maxCloning = 25,
-                             areaTresh = 0.95)
+                             areaTresh = 0.99)
 
 TEMP1<-bh_asSFC(cells = TEMP_population)
 
@@ -136,7 +136,7 @@ TEMP_pic<-bh_engrave(tissue = TEMP_pic,
                      cells = TEMP_population$dendr)
 
 par(mar=c(0,0,0,0))
-raster::plot(TEMP_pic$x.ch6.ch6,col=gray.colors(n = 255,0,1))
+raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
 plot(TEMP1['cell'],col=NA,border='red',add=T)
 
 TEMP_mod<-TEMP_pic
