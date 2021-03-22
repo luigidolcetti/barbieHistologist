@@ -107,7 +107,7 @@ cell5<-bh_defineCell(name = 'dendr',
                      markers = list(CD45,DNA,CD11c))
 
 
-tissue1<-bh_defineTissue(coords = c(0,300,0,300),
+tissue1<-bh_defineTissue(coords = c(0,500,0,500),
                          resolution = 1,
                          bg = 0,
                          markers = list(CD45,CD4,CD8,DNA,CD11c,CD1000high))
@@ -115,7 +115,7 @@ tissue1<-bh_defineTissue(coords = c(0,300,0,300),
 TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5),
                              proportion = c(0.3,0.15,0.3,0.15,0.1),
                              tissue = tissue1,
-                             maxCloning = 25,
+                             maxCloning = 15,
                              areaTresh = 0.99)
 
 TEMP1<-bh_asSFC(cells = TEMP_population)
@@ -141,16 +141,47 @@ plot(TEMP1['cell'],col=NA,border='red',add=T)
 
 TEMP_mod<-TEMP_pic
 
-raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1))
+raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1),colNA='blue')
 
-TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,3,3),fun=.modifier.scramble)
-TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = .matrix.gauss(TEMP_mod,5),fun = mean)
-TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,3,3),fun=.modifier.scramble)
+TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,11,11),fun=.modifier.scramble)
+TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,5,5),fun = mean)
+
+raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1),colNA='blue')
+
+raster::plot(TEMP_mod$x.ch2.ch2,col=gray.colors(n = 255,0,1))
+
+TEMP_mod$x.ch2.ch2<-bh_modifier(TEMP_mod$x.ch2.ch2,wMatrix = matrix(1,5,5),fun = mean)
+TEMP_mod$x.ch2.ch2<-bh_modifier(TEMP_mod$x.ch2.ch2,wMatrix = matrix(1,5,5),fun=.modifier.multDiv,fun.param = list(quantity=3))
+
+raster::plot(TEMP_mod$x.ch2.ch2,col=gray.colors(n = 255,0,1))
 
 raster::plot(TEMP_mod$x.ch3.ch3,col=gray.colors(n = 255,0,1))
 
-TEMP_mod$x.ch3.ch3<-bh_modifier(TEMP_mod$x.ch3.ch3,wMatrix = matrix(1,5,5),fun=.modifier.scramble)
-TEMP_mod$x.ch3.ch3<-bh_modifier(TEMP_mod$x.ch3.ch3,wMatrix = .matrix.gauss(TEMP_mod,2),fun = mean)
+TEMP_mod$x.ch3.ch3<-bh_modifier(TEMP_mod$x.ch3.ch3,wMatrix = matrix(c(0,1,0,1,0,1,0,1,0),3,3),fun = mean)
+
+raster::plot(TEMP_mod$x.ch3.ch3,col=gray.colors(n = 255,0,1))
+
+raster::plot(TEMP_mod$x.ch6.ch6,col=gray.colors(n = 255,0,1))
+TEMP_mod$x.ch6.ch6<-bh_modifier(TEMP_mod$x.ch6.ch6,wMatrix = .matrix.gauss(TEMP_mod$x.ch2.ch2,1),fun = mean)
+raster::plot(TEMP_mod$x.ch6.ch6,col=gray.colors(n = 255,0,1),colNA='blue')
+
+raster::plot(TEMP_mod$x.ch4.ch4,col=gray.colors(n = 255,0,1))
+TEMP_mod$x.ch4.ch4<-bh_modifier(TEMP_mod$x.ch4.ch4,wMatrix = .matrix.gauss(TEMP_mod$x.ch2.ch2,1),fun = median)
+raster::plot(TEMP_mod$x.ch4.ch4,col=gray.colors(n = 255,0,1))
+
+raster::plot(TEMP_mod$x.ch5.ch5,col=gray.colors(n = 255,0,1))
+TEMP_mod$x.ch5.ch5<-bh_modifier(TEMP_mod$x.ch5.ch5,wMatrix = matrix(1,11,11),fun = .modifier.multDiv,fun.param = list(quantity=3))
+TEMP_mod$x.ch5.ch5<-bh_modifier(TEMP_mod$x.ch5.ch5,wMatrix = matrix(1,5,5),fun = median)
+raster::plot(TEMP_mod$x.ch5.ch5,col=gray.colors(n = 255,0,1))
+
+raster::plot(TEMP_mod,col=gray.colors(n = 255,0,1))
+
+for (i in names(TEMP_mod)){
+  raster::writeRaster(TEMP_mod[[i]],
+                      filename = file.path("C:/Users/k1343421/Documents/BH",paste0(i,'.tiff')))
+}
+
+
 # TEMP_mod$x.ch3.ch3<-bh_modifier(TEMP_mod$x.ch3.ch3,wMatrix = matrix(1,3,3),fun=.modifier.scramble)
 
 par(mar=c(0,0,0,0))

@@ -1,6 +1,6 @@
 #'@export
 .modifier.scramble<-function(x){
-  x[sample(seq_along(x),length(x))]
+  x[sample(seq_along(x),1)]
 }
 
 #'@export
@@ -9,17 +9,36 @@
 }
 
 #'@export
-.matrix.gauss<-function(x,
-                        sigma=1){
-  raster::focalWeight(x,sigma)
+.modifier.multDiv<-function(x,quantity=2){
+  whatOp<-(sample(c('*','/'),1))
+  eval(parse(text = paste0('x',whatOp,'quantity')))
 }
 
+#'@export
+.matrix.gauss<-function(x,
+                        sigma=1){
+  raster::focalWeight(x,sigma,'Gauss')
+}
+
+#'@export
+.matrix.circle<-function(x,
+                        radius=3){
+  raster::focalWeight(x,radius,'circle')
+}
 
 #'@export
 bh_modifier<-function(raster,
-                      wMatrix=matrix(1,ncol=3,nrow=3),
-                      fun = .modifier.scramble){
+                      wMatrix=matrix(1,3,3),
+                      fun = .modifier.scramble,
+                      fun.param = NULL){
+  
+  if (!is.null(fun.param)){
+    formals(fun)<-append(alist(x=),fun.param)
+  }
+  
   raster::focal(x = raster,
                 w = wMatrix,
-                fun = fun)
+                fun = fun,
+                pad=TRUE,
+                padValue=0)
 }
