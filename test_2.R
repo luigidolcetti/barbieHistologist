@@ -107,7 +107,7 @@ cell5<-bh_defineCell(name = 'dendr',
                      markers = list(CD45,DNA,CD11c))
 
 
-tissue1<-bh_defineTissue(coords = c(0,500,0,500),
+tissue1<-bh_defineTissue(coords = c(0,250,0,250),
                          resolution = 1,
                          bg = 0,
                          markers = list(CD45,CD4,CD8,DNA,CD11c,CD1000high))
@@ -178,7 +178,7 @@ raster::plot(TEMP_mod,col=gray.colors(n = 255,0,1))
 
 for (i in names(TEMP_mod)){
   raster::writeRaster(TEMP_mod[[i]],
-                      filename = file.path("C:/Users/k1343421/Documents/BH",paste0(i,'.tiff')))
+                      filename = file.path("C:/Users/k1343421/Documents/BH",paste0(i,'test.tiff')),overwrite=T)
 }
 
 
@@ -196,11 +196,16 @@ raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1))
 # TEMP_pic$x.ch1.ch1<-raster::focal(TEMP_pic$x.ch1.ch1,raster::focalWeight(TEMP_pic$x.ch2.ch2, 0.5, "Gauss"))
 raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
 
-TEMP2<-bh_asXYZ(tissue = TEMP)
+TEMP2<-bh_asXYZ(tissue = TEMP_mod)
 
-colnames(TEMP2)<-c('X','Y','ch1-CD45(ch1)','ch2-CD4(ch2)','ch3-CD8(ch3)','ch4-DNA(ch4)')
-write.table(TEMP,"C:/Users/k1343421/Documents/IMC/BarbieHistologist/BH.txt",
+colnames(TEMP2)<-c('X','Y','ch1-CD45(ch1)','ch2-CD4(ch2)','ch3-CD8(ch3)','ch4-CD11c(ch4)','ch5-CDx(ch5)','ch6-DNA(ch6)')
+write.table(TEMP2,"C:/Users/k1343421/Documents/BH/BH_TEST.txt",
             row.names = F,
             quote = F,
             sep='\t')
 
+TEMP1<-bh_asSFC(cells = TEMP_population)
+
+plot(TEMP1['cell'],col=NA)
+plot(TEMP1)
+sf::st_write(TEMP1,"C:/Users/k1343421/Documents/BH/ground_TEST.sqlite",)
