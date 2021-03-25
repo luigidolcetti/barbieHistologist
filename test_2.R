@@ -49,8 +49,8 @@ cytop1<-bh_defineShape(majorAxis = c(6,0.5),
                        roundness = c(1,0),
                        nArms = 8,
                        armExt = c(1.2,0.1),
-                       armElbow = 3,
-                       armSwing = 1,
+                       armElbow = 2,
+                       armSwing = 0,
                        armTrig = c(-2,0.1))
 
 cytop2<-bh_defineShape(majorAxis = c(4,0.5),
@@ -110,17 +110,13 @@ cell5<-bh_defineCell(name = 'dendr',
 tissue1<-bh_defineTissue(coords = c(0,250,0,250),
                          resolution = 1,
                          bg = 0,
-                         markers = list(CD45,CD4,CD8,DNA,CD11c,CD1000high))
+                         markers = list(CD45,CD4,CD8,CD11c,CD1000high,DNA))
 
 TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5),
-                             proportion = c(0.3,0.15,0.3,0.15,0.1),
+                             proportion = c(0.3,0.15,0.2,0.2,0.1),
                              tissue = tissue1,
                              maxCloning = 15,
                              areaTresh = 0.99)
-
-TEMP1<-bh_asSFC(cells = TEMP_population)
-
-plot(TEMP1['cell'],col=NA)
 
 
 TEMP_pic<-bh_engrave(tissue = tissue1,
@@ -177,23 +173,10 @@ raster::plot(TEMP_mod,col=gray.colors(n = 255,0,1))
 
 for (i in names(TEMP_mod)){
   raster::writeRaster(TEMP_mod[[i]],
-                      filename = file.path("C:/Users/k1343421/Documents/BH",paste0(i,'test.tiff')),overwrite=T)
+                      filename = file.path("C:/Users/k1343421/Documents/BH",paste0(i,'_training.tiff')),overwrite=T)
 }
 
 
-# TEMP_mod$x.ch3.ch3<-bh_modifier(TEMP_mod$x.ch3.ch3,wMatrix = matrix(1,3,3),fun=.modifier.scramble)
-
-par(mar=c(0,0,0,0))
-raster::plot(TEMP_mod$x.ch3.ch3,col=gray.colors(n = 255,0,1))
-
-
-# TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix =  matrix(c(1),11,11),fun = .modifier.addNoise)
-
-raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1))
-
-
-# TEMP_pic$x.ch1.ch1<-raster::focal(TEMP_pic$x.ch1.ch1,raster::focalWeight(TEMP_pic$x.ch2.ch2, 0.5, "Gauss"))
-raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
 
 TEMP2<-bh_asXYZ(tissue = TEMP_mod)
 
@@ -206,5 +189,4 @@ write.table(TEMP2,"C:/Users/k1343421/Documents/BH/BH_TEST.txt",
 TEMP1<-bh_asSFC(cells = TEMP_population)
 
 plot(TEMP1['cell'],col=NA)
-plot(TEMP1)
 sf::st_write(TEMP1,"C:/Users/k1343421/Documents/BH/ground_TEST.sqlite",)
