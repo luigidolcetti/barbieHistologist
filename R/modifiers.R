@@ -5,13 +5,16 @@
 
 #'@export
 .modifier.addNoise<-function(x){
-  x+sample(x,1)
+  v <- x[x!=0]
+  if (length(v)) out<-sample(v,1) else out<-0
+  return(out)
 }
 
 #'@export
 .modifier.multDiv<-function(x,quantity=2){
   whatOp<-(sample(c('*','/'),1))
-  eval(parse(text = paste0('x',whatOp,'quantity')))
+  out<-eval(parse(text = paste0('x',whatOp,'quantity')))
+  mean(out)
 }
 
 #'@export

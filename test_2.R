@@ -121,7 +121,6 @@ TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5)
 TEMP1<-bh_asSFC(cells = TEMP_population)
 
 plot(TEMP1['cell'],col=NA)
-plot(TEMP1)
 
 
 TEMP_pic<-bh_engrave(tissue = tissue1,
@@ -143,7 +142,7 @@ TEMP_mod<-TEMP_pic
 
 raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1),colNA='blue')
 
-TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,11,11),fun=.modifier.scramble)
+TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,5,5),fun=.modifier.multDiv,fun.param = list(quantity=5))
 TEMP_mod$x.ch1.ch1<-bh_modifier(TEMP_mod$x.ch1.ch1,wMatrix = matrix(1,5,5),fun = mean)
 
 raster::plot(TEMP_mod$x.ch1.ch1,col=gray.colors(n = 255,0,1),colNA='blue')
