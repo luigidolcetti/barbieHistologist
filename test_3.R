@@ -44,8 +44,8 @@ DNA<-bh_defineMarker(markerName = 'dna',
 
 
 
-cytop1<-bh_defineShape(majorAxis = c(3,2),
-                       minorAxis = c(3,2),
+cytop1<-bh_defineShape(majorAxis = c(3,0.5),
+                       minorAxis = c(3,0.5),
                        roundness = c(1,0),
                        nArms = 8,
                        armExt = c(1,0.1),
@@ -53,17 +53,17 @@ cytop1<-bh_defineShape(majorAxis = c(3,2),
                        armSwing = 0,
                        armTrig = c(-2,0.1))
 
-cytop2<-bh_defineShape(majorAxis = c(2,1),
-                       minorAxis = c(2,1),
+cytop2<-bh_defineShape(majorAxis = c(2,0.5),
+                       minorAxis = c(2,0.5),
                        roundness = c(1,0),
                        nArms = 8,
-                       armExt = c(2,0.1),
+                       armExt = c(3,0.1),
                        armElbow = 4,
                        armSwing = 2,
                        armTrig = c(-2,0.1))
 
-nuc1<-bh_defineShape(majorAxis = c(1,0.001),
-                     minorAxis = c(1,0.001),
+nuc1<-bh_defineShape(majorAxis = c(1.5,0.1),
+                     minorAxis = c(1.5,0.1),
                      roundness = c(1,0),
                      nArms = 8,
                      armExt = c(1,0),
@@ -115,9 +115,12 @@ tissue1<-bh_defineTissue(coords = c(0,50,0,50),
 TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5),
                              proportion = c(0.3,0.15,0.2,0.2,0.1),
                              tissue = tissue1,
-                             maxCloning = 3,
-                             areaTresh = 0.8)
+                             maxCloning = 25,
+                             areaTresh = 0.80)
 
+bh_savePopulation(TEMP_population,
+                  file='/home/luigi/pop.R')
+TEMP_population1<-bh_loadPopulation('/home/luigi/pop.R')
 
 TEMP_pic<-bh_engrave(tissue = tissue1,
                      cells = TEMP_population$CD4_lo)
@@ -131,7 +134,7 @@ TEMP_pic<-bh_engrave(tissue = TEMP_pic,
                      cells = TEMP_population$dendr)
 
 par(mar=c(0,0,0,0))
-raster::plot(TEMP_pic,col=gray.colors(n = 255,0,1))
+raster::plot(TEMP_pic$x.ch5.ch5,col=gray.colors(n = 255,0,1))
 plot(TEMP1['cell'],col=NA,border='red',add=T)
 
 TEMP_mod<-TEMP_pic
@@ -186,9 +189,9 @@ write.table(TEMP2,"C:/Users/k1343421/Documents/BH/BH_TEST.txt",
             quote = F,
             sep='\t')
 
-TEMP1<-bh_asSFC(cells = TEMP_population)
+TEMP1<-bh_asSFC(cells = TEMP_population1)
 
-plot(TEMP1['cell'],col=NA)
+plot(TEMP1['cell'],col=NA,add=T)
 sf::st_write(TEMP1,"C:/Users/k1343421/Documents/BH/ground_TEST.sqlite",)
 
 

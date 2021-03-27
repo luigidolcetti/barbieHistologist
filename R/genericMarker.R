@@ -106,7 +106,7 @@
                         ...){
   
   levelXY<-cbind(xy,n=rep(0,nrow(xy)),l=rep(0,nrow(xy)))
-  # colnames(levelXY)<-c('x','y','n','l')
+  
   l=1
   shft<-matrix(c(-1,0,0,1,1,0,0,-1),ncol=2,byrow = T)
   while (any(levelXY[,'l']==0)){
@@ -141,7 +141,6 @@
   out<-cbind(xy,z)
   return(out)
 }
-
 
 
 #' @export

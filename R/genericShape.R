@@ -160,6 +160,8 @@ methods::setMethod(f = 'bh_create',
                      outLine<-sf::st_polygon(list(outLine))
                      outLine<-sf::st_buffer(outLine,MA/10)
                      outLine<-sf::st_buffer(outLine,-MA/10)
+                     if (!sf::st_is_valid(outLine)){
+                       outLine<-sf::st_make_valid(outLine)}
                      
                      out<-list(stem = sf::st_sfc(stm),
                                branch = sf::st_sfc(brnch),

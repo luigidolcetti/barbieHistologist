@@ -1,11 +1,11 @@
-
 #' @export
 bh_populate<-function(cellPrototype = NULL,
                       proportion = NULL,
                       maxCloning = 10,
                       tissue = NULL,
-                      cropToMesure=T,
                       areaTresh = NULL){
+  
+  
   
   areaTot<-0
   cloningI<-maxCloning+1
@@ -14,26 +14,22 @@ bh_populate<-function(cellPrototype = NULL,
   minResHalf<-min(res)
   cellNames<-sapply(cellPrototype,names,simplify = T,USE.NAMES = F)
   
+  blob<-sf::st_sfc(NULL,crs = 'NA',precision = minResHalf)
   possibleXY<-raster::raster(vals=0,ext=lim,resolution=res)
-  
-  valFreq<-raster::freq(possibleXY)
-  val1<-valFreq[valFreq[,1]==1,2]
-  if (length(val1)==0) val1<-0
-  val0<-valFreq[valFreq[,1]==0,2]
-  if (length(val0)==0) val0<-0
-  
+  areaTresh<-(lim[2]-lim[1])*(lim[4]-lim[3])*areaTresh
   
   newCellList<-sapply(1:length(cellNames),function(clnms){
-    vector('list',round(val0*proportion[clnms]))},simplify = F,USE.NAMES = F)
+    vector('list',round(areaTresh*proportion[clnms]))},simplify = F,USE.NAMES = F)
   
   names(newCellList)<-cellNames
   newCellType_counter<-rep(1,length(cellNames))
   names(newCellType_counter)<-cellNames
   
-  while((val1/(val0+val1))<areaTresh){
+  # newBar<-utils::txtProgressBar(min=0,max=areaTresh,initial=0,style=3)
+  
+  while(areaTot<areaTresh){
     
     if (cloningI>maxCloning){
-      
       newCellType<-sample(1:length(cellPrototype),1,prob = proportion)
       
       position<-raster::Which(possibleXY==0,cells=T)
@@ -83,9 +79,7 @@ bh_populate<-function(cellPrototype = NULL,
       
       cloningI <-1
       cat('---> created new cell clone\n')
-      
     } else {
-      
       position<-raster::Which(possibleXY==0,cells=T)
       position<-sample(position,1)
       position<-raster::xyFromCell(object = tissue,cell = position)
@@ -119,34 +113,23 @@ bh_populate<-function(cellPrototype = NULL,
       cloningI <- cloningI+1
     }
     
-    xyCoverage<-try(exactextractr::exact_extract(possibleXY,sf::st_sfc(unionCell),include_xy=T))
-    
-    if (inherits(xyCoverage,'try-error')){ 
-      cat('x-->bad coverage\n')
-      next
-    }
-    
+    xyCoverage<-exactextractr::exact_extract(possibleXY,sf::st_sfc(unionCell),include_xy=T)
     xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
     possibleXY[xyCoverage]<-1
     newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
     newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1
+    areaTot<-areaTot+length(xyCoverage)
     
-    valFreq<-raster::freq(possibleXY)
-    val1<-valFreq[valFreq[,1]==1,2]
-    if (length(val1)==0) val1<-0
-    val0<-valFreq[valFreq[,1]==0,2]
-    if (length(val0)==0) val0<-0
+    cat(paste0('area ratio: ',scales::label_percent(accuracy = 0.1)(areaTot/areaTresh),'\n'))
+    # setTxtProgressBar(newBar,areaTot)
     
-    cat(paste0('area ratio: ',scales::label_percent(accuracy = 0.1)(((val1)/(val1+val0))),'\n'))
-    
-    }  
+  }  
   
+  # close(newBar)
   whichToGetRid<-lapply(newCellList,function(x){
     sapply(x,is.null,simplify = T)})
-  
   out_newCellList<-lapply(1:length(newCellList),function(x){
     newCellList[[x]][!whichToGetRid[[x]]]})
-  
   names(out_newCellList)<-names(newCellList)
   
   bodyOnly<-lapply(names(out_newCellList),function(Ncls){
@@ -160,13 +143,13 @@ bh_populate<-function(cellPrototype = NULL,
     out<-sf::st_sf(data.frame(ID=1:length(out),
                               cell=Ncls,
                               geom=out))
+    
+    
     return(out)
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
   molds<-sf::st_difference(bodyOnly)
-  
-  if (cropToMesure) molds<-sf::st_crop(molds,lim)
   
   for (i in 1:nrow(molds)){
     mold<-molds[i,'geometry']
@@ -176,6 +159,10 @@ bh_populate<-function(cellPrototype = NULL,
       oldGeom<-slot(out_newCellList[[cell]][[index]],compartment)$outline
       newGeom<-sf::st_intersection(oldGeom,mold)
       
+      # par(mfrow=c(1,3))
+      # try(plot(mold))
+      # try(plot(oldGeom))
+      # try(plot(newGeom))
       if (length(newGeom)==0) newGeom<-sf::st_sfc(NULL) else{
         if (any(class(newGeom)=='sfc_GEOMETRYCOLLECTION')) {
           stArea<-sapply(newGeom[[1]],sf::st_area,simplify = T,USE.NAMES = F)
@@ -188,26 +175,8 @@ bh_populate<-function(cellPrototype = NULL,
     }
   }
   
-  
+  browser()
   return(out_newCellList)
 }
 
-#' @export
-bh_savePopulation<-function(x = NULL,file = NULL){
-  
-  if (is.null(x)) stop('give a population')
-  if (is.null(file)) stop('give a full path filename')
-  
-  out<-try(saveRDS(x,file))
-  if (inherits(out,'try-error')) stop('cannot save this pop, check file path')
-}
 
-#' @export
-bh_loadPopulation<-function(file = NULL){
-  
-  if (is.null(file)) stop('give a full path filename')
-  
-  out<-try(readRDS(file))
-  if (inherits(out,'try-error')) stop('cannot load this pop, check file path')
-  return(out)
-}

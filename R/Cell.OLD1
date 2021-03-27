@@ -60,14 +60,10 @@ methods::setMethod(f = 'bh_create',
                                          lox,
                                          loy,
                                          ...){
-                     
-                     
+                     # browser()
                      if (!is.null(x@cytoplasm)) {
-                       cytoplasm<-try(bh_create(x@cytoplasm))
-                       if (inherits(cytoplasm,'try-error')) return(0)
+                       cytoplasm<-bh_create(x@cytoplasm)
                        cytoplasm<-sapply(cytoplasm,'+',c(lox,loy),simplify = F,USE.NAMES = T)
-                       newLo<-try(sf::st_point_on_surface(cytoplasm$outline))
-                       if (inherits(newLo,'try-error')) return(0)
                      } else {
                        cytoplasm<-list()
                        cytoplasm$stem<-sf::st_sfc(NULL)
@@ -75,23 +71,8 @@ methods::setMethod(f = 'bh_create',
                        cytoplasm$outline<-sf::st_sfc(NULL)}
                      
                      if (!is.null(x@nucleus)) {
-                       nucleus<-try(bh_create(x@nucleus))
-                       if (inherits(nucleus,'try-error')) return(0)
-                       nucleus<-sapply(nucleus,'+',newLo,simplify = F,USE.NAMES = T)
-                       cytoAndNucleus<-try(sf::st_union(cytoplasm$outline,nucleus$outline))
-                       if (inherits(cytoAndNucleus,'try-error')) return(0)
-                       area_cytoplasm<-sf::st_area(cytoplasm$outline)
-                       area_cytoAndNucleus<-sf::st_area(cytoAndNucleus)
-                       while (area_cytoAndNucleus>area_cytoplasm){
-                         
-                         area_nucleus<-sf::st_area(nucleus$outline)
-                         Aratio<-area_nucleus/area_cytoplasm
-                         if (Aratio>1) Aratio<-1/Aratio
-                         nucleus<-sapply(nucleus,'*',Aratio,simplify = F,USE.NAMES = T)
-                         cytoAndNucleus<-try(sf::st_union(cytoplasm$outline,nucleus$outline))
-                         if (inherits(cytoAndNucleus,'try-error')) return(0)
-                         area_cytoAndNucleus<-sf::st_area(cytoAndNucleus)
-                       }
+                       nucleus<-bh_create(x@nucleus)
+                       nucleus<-sapply(nucleus,'+',c(lox,loy),simplify = F,USE.NAMES = T)
                      } else {
                        nucleus<-list()
                        nucleus$stem<-sf::st_sfc(NULL)
@@ -99,9 +80,7 @@ methods::setMethod(f = 'bh_create',
                        nucleus$outline<-sf::st_sfc(NULL)}
                      
                      if (!is.null(x@organelle)) {
-                       organelle<-try(bh_create(x@organelle))
-                       if (inherits(organelle,'try-error')) return(0)
-                       newLo<-sf::st_point_on_surface(cytoNotNucleus)
+                       organelle<-bh_create(x@organelle)
                        organelle<-sapply(organelle,'+',c(lox,loy),simplify = F,USE.NAMES = T)
                      } else {
                        organelle<-list()
@@ -153,7 +132,7 @@ bh_clone<-function(cell,
   for (comp in c('cytoplasm','nucleus','organelle')){
     oldConf<-slot(cell,comp)
     for (st in c('stem','branch','outline')){
-      # 
+      # browser()
       oldConfSt<-oldConf[[st]]
       cntrd<-sf::st_centroid(oldConfSt)
       newConf<-oldConfSt-cntrd+c(lox,loy)
