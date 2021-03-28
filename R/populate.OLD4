@@ -5,9 +5,6 @@ bh_populate<-function(cellPrototype = NULL,
                       maxCloning = 10,
                       tissue = NULL,
                       cropToMesure=T,
-                      require_cytoplasm = T,
-                      require_nucleus = T,
-                      require_organelle = F,
                       areaTresh = NULL){
   
   areaTot<-0
@@ -236,36 +233,7 @@ bh_populate<-function(cellPrototype = NULL,
     }
   }
   
-  whichToGetRid<-lapply(out_newCellList,function(x){
-    sapply(x,function(x){
-      status_cy<-sf::st_is_empty(x@cytoplasm$outline)
-      status_nu<-sf::st_is_empty(x@nucleus$outline)
-      status_or<-sf::st_is_empty(x@organelle$outline)
-      type_cy<-sf::st_geometry_type(x@cytoplasm$outline)
-      type_nu<-sf::st_geometry_type(x@nucleus$outline)
-      type_or<-sf::st_geometry_type(x@organelle$outline)
-      valid_cy<-sf::st_is_valid(x@cytoplasm$outline)
-      valid_nu<-sf::st_is_valid(x@nucleus$outline)
-      valid_or<-sf::st_is_valid(x@organelle$outline)
-      if (status_cy & require_cytoplasm) return(T)
-      if (status_nu & require_nucleus) return(T)
-      if (status_or & require_organelle) return(T)
-      if (!status_cy & type_cy != 'POLYGON' & require_cytoplasm) return(T)
-      if (!status_nu & type_nu != 'POLYGON' & require_nucleus) return(T)
-      if (!status_or & type_or != 'POLYGON' & require_organelle) return(T)
-      if (!valid_cy | !valid_nu | !valid_or) return(T)
-      if (is.null(x)) return(T)
-      return(F)
-    },simplify = T)
-    })
   
-  oldNames<-names(out_newCellList)
-  
-  out_newCellList<-lapply(1:length(out_newCellList),function(x){
-    out_newCellList[[x]][!whichToGetRid[[x]]]})
-  
-  names(out_newCellList)<-oldNames
-
   return(out_newCellList)
 }
 

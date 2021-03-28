@@ -102,7 +102,8 @@ bh_engrave<-function(tissue = NULL,
                         'organelle'),
                       function(comp){
                         
-                        newComp<-slot(cell,comp)$outline
+                        newComp<-try(slot(cell,comp)$outline)
+                        
                         if (!sf::st_is_empty(newComp)){
                           cellTiles<-exactextractr::exact_extract(tissue,sf::st_sf(newComp),include_xy=T)
                           cellTiles<-do.call(rbind,cellTiles)
