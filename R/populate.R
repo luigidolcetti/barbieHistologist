@@ -38,14 +38,24 @@ bh_populate<-function(cellPrototype = NULL,
       
       position<-raster::Which(possibleXY==0,cells=T)
       position<-sample(position,1)
-      position<-raster::xyFromCell(object = tissue,cell = position)
+      position<-try(raster::xyFromCell(object = tissue,cell = position))
       
-      newCellClone<-bh_create(cellPrototype[[newCellType]],
+      if (inherits(position,'try-error')){
+        cat('X--> bad position\n')
+        next}
+      
+      newCellClone<-try(bh_create(cellPrototype[[newCellType]],
                               lox = position[,'x'],
-                              loy = position[,'y'])
+                              loy = position[,'y']))
+      
+      if (inherits(newCellClone,'try-error')){
+        cat('XX-> bad cell\n')
+        cloningI<-maxCloning+1
+        next}
       
       if (class(newCellClone)!='cell') {
-        cat('XX-> bad cell')
+        cat('XX-> bad cell\n')
+        cloningI<-maxCloning+1
         next}
       
       newCell<-newCellClone
@@ -72,8 +82,20 @@ bh_populate<-function(cellPrototype = NULL,
         next
       }
       
-      area_unionCell<-sf::st_area(unionCell)
-      area_cell<-sf::st_area(slot(newCell,'cytoplasm')$outline)
+      area_unionCell<-try(sf::st_area(unionCell))
+      
+      if (inherits(area_unionCell,'try-error')){
+        cat('XX-> bad area union\n')
+        cloningI<-maxCloning+1
+        next}
+      
+      area_cell<-try(sf::st_area(slot(newCell,'cytoplasm')$outline))
+      
+      if (inherits(area_cell,'try-error')){
+        cat('X--> bad area cytoplasm\n')
+        cloningI<-maxCloning+1
+        next}
+      
       
       if (area_unionCell>area_cell){
         cat('xx->bad area cell\n')
@@ -90,9 +112,15 @@ bh_populate<-function(cellPrototype = NULL,
       position<-sample(position,1)
       position<-raster::xyFromCell(object = tissue,cell = position)
       
-      newCell<-bh_clone(cell = newCellClone,
+      newCell<-try(bh_clone(cell = newCellClone,
                         lox = position[,'x'],
-                        loy = position[,'y'])
+                        loy = position[,'y']))
+      
+      if (inherits(newCell,'try-error')){ 
+        cat('x-->bad cloning\n')
+        cloningI<-maxCloning+1
+        next
+      }
       
       newComp<-try(sapply(c('cytoplasm',
                             'nucleus',
@@ -126,7 +154,13 @@ bh_populate<-function(cellPrototype = NULL,
       next
     }
     
-    xyCoverage<-raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')])
+    xyCoverage<-try(raster::cellFromXY(possibleXY,xyCoverage[[1]][,c('x','y')]))
+    
+    if (inherits(xyCoverage,'try-error')){ 
+      cat('x-->bad coverage\n')
+      next
+    }
+    
     possibleXY[xyCoverage]<-1
     newCellList[[newCellType]][[newCellType_counter[newCellType]]]<-newCell
     newCellType_counter[newCellType]<-newCellType_counter[newCellType]+1

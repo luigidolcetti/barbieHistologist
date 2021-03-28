@@ -62,7 +62,7 @@ bh_saveSFC<-function(sfc = NULL,
  if (is.null(filePath)) stop('give a full path file name')
   if (!grepl('.sqlite',filePath)) filePath<-paste0(filePath,'.sqlite')
   
-  out<-try(sf::st_write(sfc,filePath,overwrite=T))
+  out<-try(sf::st_write(sfc,filePath,append=F))
   if (inherits(out,'try-error')) return(1) else return(0)
 }
 
