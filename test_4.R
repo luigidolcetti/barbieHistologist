@@ -102,7 +102,7 @@ cell5<-bh_defineCell(name = 'dendr',
 
 
 densityList<-c(0.05,0.1,0.25,0.25,0.75,0.99)
-fileRoot='/home/luigi/BH_Raw'
+fileRoot="C:/Users/k1343421/Documents/BH/BH_TEST1"  
 dir.create(fileRoot)
 
 for (dd in seq_along(densityList)[1]){
