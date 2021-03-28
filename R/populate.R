@@ -218,6 +218,7 @@ bh_populate<-function(cellPrototype = NULL,
           newGeom<-stGeom[[maxStArea]]
         }
       }
+      if (sf::st_geometry_type(newGeom)!='POLYGON') newGeom<-sf::st_sfc(NULL)
       slot(out_newCellList[[cell]][[index]],compartment)$outline<-newGeom
     }
   }
