@@ -105,12 +105,12 @@ densityList<-c(0.05,0.1,0.25,0.5,0.75,0.99)
 fileRoot='/home/luigi/BH_Raw'
 dir.create(fileRoot)
 
-for (dd in seq_along(densityList)[1]){
+for (dd in seq_along(densityList)){
   
   folderDensity<-file.path(fileRoot,paste0('densityBrake_',dd))
   dir.create(folderDensity)
   
-  tissue1<-bh_defineTissue(coords = c(0,500,0,500),
+  tissue1<-bh_defineTissue(coords = c(0,50,0,50),
                            resolution = 1,
                            bg = 0,
                            markers = list(CD45,CD4,CD8,CD11c,CD1high,DNA))
