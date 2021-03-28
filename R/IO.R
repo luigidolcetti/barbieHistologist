@@ -65,3 +65,21 @@ bh_saveSFC<-function(sfc = NULL,
   out<-try(sf::st_write(sfc,filePath,overwrite=T))
   if (inherits(out,'try-error')) return(1) else return(0)
 }
+
+
+#' Save Tiff image
+#' Wrapper around raster::writeRaster
+#' @param raster a Raster Layer
+#' @param filePath character, full path and file name. Extension .tiff
+#'   will be added if missing.
+#' @export
+bh_saveTiff<-function(raster = NULL,
+                     filePath = NULL){
+  
+  if (is.null(raster)) stop('give raster')
+  if (is.null(filePath)) stop('give a full path file name')
+  if (!grepl('.tif',filePath)) filePath<-paste0(filePath,'.tif')
+  
+  out<-try(raster::writeRaster(raster,filePath,overwrite=T))
+  if (inherits(out,'try-error')) return(1) else return(0)
+}
