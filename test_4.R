@@ -101,7 +101,7 @@ cell5<-bh_defineCell(name = 'dendr',
                      markers = list(CD45,DNA,CD11c))
 
 
-densityList<-c(0.05,0.1,0.25,0.25,0.75,0.99)
+densityList<-c(0.05,0.1,0.25,0.5,0.75,0.99)
 fileRoot='/home/luigi/BH_Raw'
 dir.create(fileRoot)
 
@@ -118,7 +118,7 @@ for (dd in seq_along(densityList)[1]){
   TEMP_population<-bh_populate(cellPrototype = list(cell1,cell2,cell3,cell4,cell5),
                                proportion = c(0.2,0.2,0.2,0.2,0.2),
                                tissue = tissue1,
-                               maxCloning = round(40*densityList[dd]),
+                               maxCloning = round(20*densityList[dd]),
                                areaTresh = densityList[dd])
   
   bh_savePopulation(TEMP_population,
