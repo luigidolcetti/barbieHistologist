@@ -116,13 +116,129 @@ bh_engrave<-function(tissue = NULL,
       lyr<-cell@markers[[i]]@Rname
       if (!is.null(cellTiles[[compartment]])){
         if (nrow(cellTiles[[compartment]])!=0){
-      newCall<-rlang::call_modify(cell@markers[[i]]@pattern,xy=cellTiles[[compartment]][,1:2])
-      newTiles<-eval(newCall)
-      newTiles[newTiles[,3]<0,3]<-0
-      tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-newTiles[,3]*cellTiles[[compartment]][,3]
+          newCall<-rlang::call_modify(cell@markers[[i]]@pattern,xy=cellTiles[[compartment]][,1:2])
+          newTiles<-eval(newCall)
+          newTiles[newTiles[,3]<0,3]<-0
+          tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-newTiles[,3]*cellTiles[[compartment]][,3]
         }
       }
     }
   }
   return(tissue)
+}
+
+#' @export
+bh_familyPicture<-function(tissue = NULL,
+                           sfc = NULL,
+                           compartment = 'cytoplasm'){
+  
+  if (is.null(tissue)) stop('give tissue')
+  if (is.null(sfc)) stop ('give sfc')
+  if (is.null(compartment)) stop('give compartment')
+  
+  if (!any(compartment %in% sfc$compartment)) stop('cannot find compartment')
+  
+  rasterID<-raster::raster(ext = raster::extent(tissue[[1]]),resolution = raster::res(tissue[[1]]),crs='',vals=0)
+  rasterCov<-rasterID
+  
+  sfc<-sfc[sfc$compartment==compartment,]
+  
+  sfc_valid<-sfc[!sf::st_is_empty(sfc),]
+  
+  tiles<-exactextractr::exact_extract(x = rasterID,
+                                      y = sfc_valid,
+                                      include_xy=T)
+  
+  for (i in 1:length(tiles)){
+    newID<-sfc_valid$seqID[i]
+    
+    tileID<-raster::cellFromXY(object = rasterID,
+                               xy = tiles[[i]][,c('x','y')])
+    rasterID[tileID]<-newID
+    rasterCov[tileID]<-tiles[[i]][,'coverage_fraction']
+  }
+  
+  out<-list(ID=rasterID,
+            cov=rasterCov)
+  out<-raster::stack(out)
+  
+  return(out)
+}
+
+#' @export
+bh_saveFamily<-function(familyPicture = NULL,
+                        familyName = NULL,
+                        filePath = NULL){
+  
+  if (is.null(familyPicture)) stop('give picture')
+  if (is.null(familyName)) stop('give name')
+  if (is.null(filePath)) stop('give folder')
+  if(!dir.exists(filePath)) stop('cannot  find folder')
+  
+  newDir<-file.path(filePath, familyName)
+  if (!dir.exists(newDir)) dir.create(newDir)
+  nms<-names(familyPicture)
+  newStk<-vector(mode = 'list',length = length(nms))
+  names(newStk)<-nms
+  
+  for (i in nms){
+    newStk[[i]]<-raster::writeRaster(familyPicture[[i]],
+                                     file.path(newDir,
+                                               paste0(i,'.nc')),
+                                     format = 'CDF',
+                                     overwrite = T)
+    raster::crs(newStk[[i]])<-''
+  }
+  newStk<-raster::stack(newStk)
+  return(newStk)
+}
+
+#' @export
+bh_loadFamily<-function(filePath = NULL){
+  
+  if (is.null(filePath)) stop('give folder')
+  if(!dir.exists(filePath)) stop('cannot  find folder')
+  
+  newFiles<-list.files(filePath,
+                       full.names = T)
+  nms<-sub(pattern = '.nc',
+           replacement = "",
+           list.files(filePath, full.names = F))
+  newStk<-vector(mode = 'list',length = length(newFiles))
+  names(newStk)<-nms
+  for (i in 1:length(newFiles)){
+    newStk[[i]]<-raster::raster(newFiles[[i]])
+    raster::crs(newStk[[i]])<-''
+  }
+  newStk<-raster::stack(newStk)
+  return(newStk)
+}
+
+#' @export
+bh_extractFamily<-function(family = NULL,
+                           sfc = NULL,
+                           sfcPrimaryKey = NULL){
+  
+  if (is.null(family)) stop('give family')
+  if (is.null(sfc)) stop('give sfc')
+  if (is.null(sfcPrimaryKey)) stop('give primary key')
+  if (!is.character(sfcPrimaryKey)) stop('primary key must be character')
+  
+  sfc<-sfc[!sf::st_is_empty(sfc),]
+  sfc<-sfc[sf::st_geometry_type(sfc)=='POLYGON',]
+  
+  out<-exactextractr::exact_extract(x = family,
+                                    y = sfc,
+                                    include_xy=T)
+  sfcClean<-sf::st_drop_geometry(sfc)
+  
+  out<-lapply(1:length(out),function(i){
+    data.frame(sfcClean[i,sfcPrimaryKey],
+                     out[[i]])
+    })
+  
+  out<-do.call(rbind.data.frame,out)
+  names(out)[1]<-sfcPrimaryKey
+    
+  return(out)
 }
