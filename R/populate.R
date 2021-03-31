@@ -201,9 +201,14 @@ bh_populate<-function(cellPrototype = NULL,
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
-  molds<-try(sf::st_difference(bodyOnly))
   
-  if (inherits(molds,'try-error')) browser()
+  if (any(sf::st_is_valid(bodyOnly))) {
+    bodyOnly<-sf::st_make_valid(bodyOnly)
+    
+  }
+  
+  molds<-sf::st_difference(bodyOnly)
+  
   
   if (any(sf::st_is_valid(molds))) {
     molds<-sf::st_make_valid(molds)
@@ -211,6 +216,11 @@ bh_populate<-function(cellPrototype = NULL,
   }
     
   if (cropToMesure) molds<-sf::st_crop(molds,lim)
+  
+  if (any(sf::st_is_valid(molds))) {
+    molds<-sf::st_make_valid(molds)
+    
+  }
   
   for (i in 1:nrow(molds)){
     mold<-molds[i,'geometry']
