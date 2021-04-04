@@ -41,7 +41,7 @@ bh_populate<-function(cellPrototype = NULL,
       
       position<-raster::Which(possibleXY==0,cells=T)
       position<-sample(position,1)
-      position<-try(raster::xyFromCell(object = tissue,cell = position),silent = T)
+      position<-try(raster::xyFromCell(object = tissue,cell = position))
       
       if (inherits(position,'try-error')){
         cat('X--> bad position\n')
@@ -49,7 +49,7 @@ bh_populate<-function(cellPrototype = NULL,
       
       newCellClone<-try(bh_create(cellPrototype[[newCellType]],
                               lox = position[,'x'],
-                              loy = position[,'y']),silent = T)
+                              loy = position[,'y']))
       
       if (inherits(newCellClone,'try-error')){
         cat('XX-> bad cell\n')
@@ -85,14 +85,14 @@ bh_populate<-function(cellPrototype = NULL,
         next
       }
       
-      area_unionCell<-try(sf::st_area(unionCell),silent = T)
+      area_unionCell<-try(sf::st_area(unionCell))
       
       if (inherits(area_unionCell,'try-error')){
         cat('XX-> bad area union\n')
         cloningI<-maxCloning+1
         next}
       
-      area_cell<-try(sf::st_area(slot(newCell,'cytoplasm')$outline),silent=T)
+      area_cell<-try(sf::st_area(slot(newCell,'cytoplasm')$outline))
       
       if (inherits(area_cell,'try-error')){
         cat('X--> bad area cytoplasm\n')
@@ -201,32 +201,16 @@ bh_populate<-function(cellPrototype = NULL,
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
-<<<<<<< HEAD
+  molds<-try(sf::st_difference(bodyOnly))
   
-  if (any(sf::st_is_valid(bodyOnly))) {
-    bodyOnly<-sf::st_make_valid(bodyOnly)
-    
-  }
-  
-  molds<-sf::st_difference(bodyOnly)
-  
-=======
-  molds<-try(sf::st_difference(bodyOnly),silent = T)
-  
-  if (inherits(molds,'try-error')) stop('populate failed retry')
->>>>>>> 7b92c792b3861d18c4a93d7c01308a26be7a9894
-  
-  if (!all(sf::st_is_valid(molds))) {
-    molds<-sf::st_make_valid(molds)
-    
-  }
-    
-  if (cropToMesure) molds<-sf::st_crop(molds,lim)
+  if (inherits(molds,'try-error')) browser()
   
   if (any(sf::st_is_valid(molds))) {
     molds<-sf::st_make_valid(molds)
     
   }
+    
+  if (cropToMesure) molds<-sf::st_crop(molds,lim)
   
   for (i in 1:nrow(molds)){
     mold<-molds[i,'geometry']
@@ -235,31 +219,19 @@ bh_populate<-function(cellPrototype = NULL,
     for (compartment in c('cytoplasm','nucleus','organelle')){
       oldGeom<-slot(out_newCellList[[cell]][[index]],compartment)$outline
       
-      if (!sf::st_is_valid(oldGeom)) oldGeom<-sf::st_make_valid(oldGeom)
+      newGeom<-try(sf::st_intersection(oldGeom,mold))
       
-      newGeom<-try(sf::st_intersection(oldGeom,mold),silent = T)
-      
-      if (inherits(newGeom,'try-error')) {
-        newGeom<-sf::st_sfc(NULL)}
+      if (inherits(newGeom,'try-error')) newGeom<-sf::st_sfc(NULL)
       
       if (length(newGeom)==0) newGeom<-sf::st_sfc(NULL) else{
-        if (any(class(newGeom)=='sfc_GEOMETRYCOLLECTION' |
-                class(newGeom)=='sfc_MULTIPOLYGON')) {
-     
-          newGeom<-newGeom[sf::st_is(newGeom,c('POLYGON','MULTIPOLYGON')),]
-          newGeom<-sf::st_cast(newGeom,'POLYGON')
-          stArea<-sf::st_area(newGeom)
-          maxStArea<-which.max(stArea)
-          newGeom<-newGeom[maxStArea,]
+        if (any(class(newGeom)=='sfc_GEOMETRYCOLLECTION')) {
+          stArea<-sapply(newGeom[[1]],sf::st_area,simplify = T,USE.NAMES = F)
+          maxStArea<-which.max(stArea)[1]
+          stGeom<-lapply(newGeom[[1]],sf::st_sfc)
+          newGeom<-stGeom[[maxStArea]]
         }
       }
-      # test<-try (if(sf::st_geometry_type(newGeom)!='POLYGON' & length(newGeom)!=0) test<-0) 
-      # if (inherits(test,'try-error')) browser()  
-      # {
-        # # browser()
-        # newGeom<-sf::st_sfc(NULL)}
-
-      if (length(sf::st_geometry_type(newGeom))==0) newGeom<-sf::st_sfc(NULL)
+      if (sf::st_geometry_type(newGeom)!='POLYGON') newGeom<-sf::st_sfc(NULL)
       slot(out_newCellList[[cell]][[index]],compartment)$outline<-newGeom
     }
   }

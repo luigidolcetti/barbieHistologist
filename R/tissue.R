@@ -32,6 +32,7 @@ methods::setMethod('initialize',
                                            ymx=ymx,
                                            resolution=resolution,
                                            vals=bg)
+                       raster::crs(out)<-NA
                        names(out)<-mrkr@Rname
                        return(out)
                      })
@@ -104,7 +105,7 @@ bh_engrave<-function(tissue = NULL,
                         
                         newComp<-try(slot(cell,comp)$outline)
                         
-                        if (!sf::st_is_empty(newComp)){
+                        if (!sf::st_is_empty(newComp) & sf::st_is(newComp,c('POLYGON','MULTIPOLYGON'))){
                           cellTiles<-exactextractr::exact_extract(tissue,sf::st_sf(newComp),include_xy=T)
                           cellTiles<-do.call(rbind,cellTiles)
                           cellTiles<-cellTiles[,c('x','y','coverage_fraction')]
