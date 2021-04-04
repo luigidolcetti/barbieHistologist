@@ -201,20 +201,10 @@ bh_populate<-function(cellPrototype = NULL,
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
-<<<<<<< HEAD
-  
-  if (any(sf::st_is_valid(bodyOnly))) {
-    bodyOnly<-sf::st_make_valid(bodyOnly)
-    
-  }
-  
-  molds<-sf::st_difference(bodyOnly)
-  
-=======
   molds<-try(sf::st_difference(bodyOnly),silent = T)
   
   if (inherits(molds,'try-error')) stop('populate failed retry')
->>>>>>> 7b92c792b3861d18c4a93d7c01308a26be7a9894
+
   
   if (!all(sf::st_is_valid(molds))) {
     molds<-sf::st_make_valid(molds)
