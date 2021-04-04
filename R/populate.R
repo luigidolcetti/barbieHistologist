@@ -115,7 +115,7 @@ bh_populate<-function(cellPrototype = NULL,
       position<-sample(position,1)
       position<-raster::xyFromCell(object = tissue,cell = position)
       
-      newCell<-try(bh_clone(cell = newCellClone,
+        newCell<-try(bh_clone(cell = newCellClone,
                         lox = position[,'x'],
                         loy = position[,'y']))
       
@@ -201,26 +201,10 @@ bh_populate<-function(cellPrototype = NULL,
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
-<<<<<<< HEAD
   molds<-try(sf::st_difference(bodyOnly),silent = T)
   
   if (inherits(molds,'try-error')) stop('populate failed retry')
-=======
-<<<<<<< HEAD
-  
-  if (any(sf::st_is_valid(bodyOnly))) {
-    bodyOnly<-sf::st_make_valid(bodyOnly)
-    
-  }
-  
-  molds<-sf::st_difference(bodyOnly)
-  
-=======
-  molds<-try(sf::st_difference(bodyOnly),silent = T)
-  
-  if (inherits(molds,'try-error')) stop('populate failed retry')
->>>>>>> 7b92c792b3861d18c4a93d7c01308a26be7a9894
->>>>>>> 290b4ba1ff3ed61360ad9c8c3ebc8df59a43f0e3
+
   
   if (!all(sf::st_is_valid(molds))) {
     molds<-sf::st_make_valid(molds)
