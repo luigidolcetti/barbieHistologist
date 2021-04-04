@@ -115,7 +115,7 @@ bh_populate<-function(cellPrototype = NULL,
       position<-sample(position,1)
       position<-raster::xyFromCell(object = tissue,cell = position)
       
-      newCell<-try(bh_clone(cell = newCellClone,
+        newCell<-try(bh_clone(cell = newCellClone,
                         lox = position[,'x'],
                         loy = position[,'y']))
       
