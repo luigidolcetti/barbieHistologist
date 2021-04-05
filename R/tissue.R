@@ -151,7 +151,7 @@ bh_familyPicture<-function(tissue = NULL,
                                       include_xy=T)
   
   for (i in 1:length(tiles)){
-    newID<-sfc_valid$seqID[i]
+    newID<-sfc_valid$seqid[i]
     
     tileID<-raster::cellFromXY(object = rasterID,
                                xy = tiles[[i]][,c('x','y')])

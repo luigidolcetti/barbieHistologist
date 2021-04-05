@@ -201,7 +201,8 @@ bh_populate<-function(cellPrototype = NULL,
   })
   
   bodyOnly<-do.call(dplyr::bind_rows,bodyOnly)
-  molds<-try(sf::st_difference(bodyOnly),silent = T)
+  if (!all(sf::st_is_valid(bodyOnly))) bodyOnly<-sf::st_make_valid(bodyOnly)
+  molds<-try(sf::st_difference(sf::st_buffer(bodyOnly,0)),silent = T)
   
   if (inherits(molds,'try-error')) stop('populate failed retry')
 
@@ -250,6 +251,9 @@ bh_populate<-function(cellPrototype = NULL,
         # newGeom<-sf::st_sfc(NULL)}
 
       if (length(sf::st_geometry_type(newGeom))==0) newGeom<-sf::st_sfc(NULL)
+      
+      if (!sf::st_is_valid(newGeom)) newGeom<-sf::st_make_valid(newGeom)
+      
       slot(out_newCellList[[cell]][[index]],compartment)$outline<-newGeom
     }
   }

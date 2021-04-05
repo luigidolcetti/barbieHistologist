@@ -44,11 +44,11 @@ bh_asSFC<-function(cells=NULL){
     return(out)
   })
   out<-do.call(dplyr::bind_rows,out)
-  seqID<-1:length(unique(out$ID))
+  seqid<-1:length(unique(out$ID))
   seqMultiplier<-rle(as.character(out$ID))
   repV<-Vectorize(rep)
-  newIDs<-repV(times = seqMultiplier$lengths, x = seqID)
-  out<-dplyr::bind_cols(out,seqID = newIDs)
+  newIDs<-repV(times = seqMultiplier$lengths, x = seqid)
+  out<-dplyr::bind_cols(out,seqid = newIDs)
   return(out)
 }
 
