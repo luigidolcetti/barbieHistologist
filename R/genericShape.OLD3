@@ -122,19 +122,16 @@ methods::setMethod(f = 'bh_create',
                          
                          if (AT[i]<0) DD<-(AW-ii)*(-AT[i]) else DD<-ii*AT[i]
                          
-                         smpAng<-atan2(sin(newAngl),cos(newAngl)) + pi
-                         if ((smpAng>=0 & smpAng<pi)) drc<-(-1) else drc<-1
-                         
                          if (!is.infinite(m1)){
-                           x1<-x+drc*sqrt(DD/(1+m1^2))
-                           x2<-x-drc*sqrt(DD/(1+m1^2))
+                           x1<-x+sqrt(DD/(1+m1^2))
+                           x2<-x+-sqrt(DD/(1+m1^2))
                            y1<-m1*x1+q1
                            y2<-m1*x2+q1
                          } else {
                            x1 <- x
                            x2 <- x
-                           y1 <- drc*DD
-                           y2 <- -drc*DD
+                           y1 <- DD
+                           y2 <- -DD
                          }
                          
                          out<-list(stem=matrix(c(x,y),ncol=2,byrow = T),
@@ -162,17 +159,15 @@ methods::setMethod(f = 'bh_create',
                        lx <- do.call(rbind,lx)
                        rx<-lapply(x$branch,function(y) y[c(F,T),])
                        rx<-do.call(rbind,rev(rx))
-                       out<-rbind(lx,rx)
-                       # if (sum(lx[,2])>0) {
-                       #   out<-rbind(lx,rx)} else {
-                       #     out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
+                       if (sum(lx[,2])>0) {
+                         out<-rbind(lx,rx)} else {
+                           out<-rbind(rx[nrow(rx):1,],lx[nrow(lx):1,])}
                      })
                      outLine<-do.call(rbind,outLine)
                      outLine<-rbind(outLine,outLine[1,])
                      outLine<-sf::st_polygon(list(outLine))
-                     outLine<-sf::st_buffer(outLine,0)
-                     # outLine<-sf::st_buffer(outLine,MA/10)
-                     # outLine<-sf::st_buffer(outLine,-MA/10)
+                     outLine<-sf::st_buffer(outLine,MA/10)
+                     outLine<-sf::st_buffer(outLine,-MA/10)
                      if (!sf::st_is_valid(outLine)){
                        outLine<-sf::st_make_valid(outLine)}
                      
