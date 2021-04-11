@@ -8,6 +8,8 @@ bh_populate<-function(cellPrototype = NULL,
                       require_cytoplasm = T,
                       require_nucleus = T,
                       require_organelle = F,
+                      shrinkage = 0.9,
+                      setEscape = 100,
                       areaTresh = NULL){
   
   areaTot<-0
@@ -49,7 +51,9 @@ bh_populate<-function(cellPrototype = NULL,
       
       newCellClone<-try(bh_create(cellPrototype[[newCellType]],
                               lox = position[,'x'],
-                              loy = position[,'y']),silent = T)
+                              loy = position[,'y'],
+                              shrinkage = shrinkage,
+                              setEscape = setEscape),silent = T)
       
       if (inherits(newCellClone,'try-error')){
         cat('XX-> bad cell\n')

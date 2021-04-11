@@ -59,6 +59,8 @@ methods::setMethod(f = 'bh_create',
                    definition = function(x,
                                          lox,
                                          loy,
+                                         shrinkage,
+                                         setEscape,
                                          ...){
                      
                      
@@ -82,15 +84,23 @@ methods::setMethod(f = 'bh_create',
                        if (inherits(cytoAndNucleus,'try-error')) return(0)
                        area_cytoplasm<-sf::st_area(cytoplasm$outline)
                        area_cytoAndNucleus<-sf::st_area(cytoAndNucleus)
-                       while (area_cytoAndNucleus>area_cytoplasm){
-                         
+                       safeEscape<-setEscape
+                       while (length((sf::st_within(nucleus$outline,
+                                                    cytoplasm$outline)[[1]]))==0){
+                       
                          area_nucleus<-sf::st_area(nucleus$outline)
-                         Aratio<-area_nucleus/area_cytoplasm
-                         if (Aratio>1) Aratio<-1/Aratio
+                         # browser()
+                         Aratio<-area_cytoplasm/area_cytoAndNucleus*shrinkage
+                         # if (Aratio>1) Aratio<-1/Aratio
+                         cNuc<-sf::st_centroid(nucleus$outline)
+                         nucleus<-sapply(nucleus,'-',cNuc,simplify = F,USE.NAMES = T)
                          nucleus<-sapply(nucleus,'*',Aratio,simplify = F,USE.NAMES = T)
+                         nucleus<-sapply(nucleus,'+',cNuc,simplify = F,USE.NAMES = T)
                          cytoAndNucleus<-try(sf::st_union(cytoplasm$outline,nucleus$outline))
                          if (inherits(cytoAndNucleus,'try-error')) return(0)
                          area_cytoAndNucleus<-sf::st_area(cytoAndNucleus)
+                         safeEscape <- safeEscape-1
+                         if (safeEscape<0) return(0)
                        }
                      } else {
                        nucleus<-list()
