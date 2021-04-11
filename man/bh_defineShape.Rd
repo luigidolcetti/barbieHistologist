@@ -9,6 +9,8 @@ bh_defineShape(
   minorAxis = NULL,
   roundness = NULL,
   nArms = NULL,
+  fixedArms = NULL,
+  orientation = NULL,
   armExt = NULL,
   armElbow = NULL,
   armSwing = NULL,

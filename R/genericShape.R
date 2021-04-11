@@ -4,6 +4,8 @@ genericShape<-methods::setClass(Class = 'genericShape',
                                           minorAxis = 'numeric',
                                           roundness = 'numeric',
                                           nArms = 'numeric',
+                                          fixedArms = 'logical',
+                                          orientation = 'numeric',
                                           armExt = 'numeric',
                                           armElbow = 'numeric',
                                           armSwing = 'numeric',
@@ -12,6 +14,8 @@ genericShape<-methods::setClass(Class = 'genericShape',
                                                   minorAxis = c(10,1),
                                                   roundness = c(0.8,0.1),
                                                   nArms = 5,
+                                                  fixedArms = F,
+                                                  orientation = NULL,
                                                   armExt = c(1,1),
                                                   armElbow = 3,
                                                   armSwing = 3,
@@ -29,6 +33,8 @@ methods::setMethod('initialize',
                             minorAxis = c(10,1),
                             roundness = c(0.8,0.1),
                             nArms = 5,
+                            fixedArms = F,
+                            orientation = NULL,
                             armExt = c(1,1),
                             armElbow = 3,
                             armSwing = 3,
@@ -48,6 +54,12 @@ methods::setMethod('initialize',
                      if (!is.null(nArms)){
                        if (length(nArms)!=1) stop('length of one argument is wrong')
                        .Object@nArms <- nArms}
+                     if (!is.null(fixedArms)){
+                       if (!is.logical(fixedArms)) stop('fixed arms must be T/F')
+                       .Object@fixedArms<-fixedArms}
+                     if (!is.null(orientation)){
+                       if (!is.numeric(orientation)) stop('orientation must be either NULL or an angle expressed in degrees')
+                       .Object@orientation<-orientation}
                      if (!is.null(armExt)){
                        if (length(armExt)!=2) stop('length of one argument is wrong')
                        .Object@armExt <- armExt}
@@ -85,7 +97,9 @@ methods::setMethod(f = 'bh_create',
                      MA <- rnorm(n = 1, mean = x@majorAxis[1],sd = x@majorAxis[2])
                      MI <- rnorm(n = 1, mean = x@minorAxis[1],sd = x@minorAxis[2])
                      RO <- rnorm(n = 1, mean = x@roundness[1],sd = x@roundness[2])
-                     NR <- rpois(n = 1, lambda = x@nArms)
+                     
+                     if (x@fixedArms) NR<-x@nArms else NR <- rpois(n = 1, lambda = x@nArms)
+                     
                      if (NR<2) NR<-2
                      if (NR%%2==1) NR<-NR+1
                      # AE <- rnorm(n = NR, mean = MA, sd = x@armExt[2]) * x@armExt[1]
@@ -95,7 +109,8 @@ methods::setMethod(f = 'bh_create',
                      AS <- x@armSwing
                      AT <- rnorm(n = NR, mean = x@armTrig[1],sd = x@armTrig[2])
                      
-                     ang1<-sample(1:360,1)
+                     if (!is.null(x@orientation)) ang1<-x@orientation %% 360 else ang1<-sample(1:360,1)
+                     
                      ang2<-ang1+180
                      angSpread<-90*RO
                      
@@ -207,6 +222,8 @@ bh_defineShape<-function(majorAxis = NULL,
                          minorAxis = NULL,
                          roundness = NULL,
                          nArms = NULL,
+                         fixedArms = NULL,
+                         orientation = NULL,
                          armExt = NULL,
                          armElbow = NULL,
                          armSwing = NULL,
@@ -220,6 +237,7 @@ bh_defineShape<-function(majorAxis = NULL,
   if (length(roundness)!=2) stop('roundness need a mean and sd')
   if (is.null(nArms)) stop('define number of arms')
   if (length(nArms)!=1) stop('number of arms must be a single value')
+  if (is.null(fixedArms)) stop('fixed arms needs T/F')
   if (is.null(armExt)) stop('define arm extent')
   if (length(armExt)!=2) stop('arm extension need a mean and sd')
   if (is.null(armElbow)) stop('define number of arms breaks')
@@ -234,6 +252,8 @@ bh_defineShape<-function(majorAxis = NULL,
       minorAxis = minorAxis,
       roundness = roundness,
       nArms = nArms,
+      fixedArms = fixedArms,
+      orientation = orientation,
       armExt = armExt,
       armElbow = armElbow,
       armSwing = armSwing,
