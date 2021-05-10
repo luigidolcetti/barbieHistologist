@@ -153,7 +153,7 @@ methods::setMethod(f = 'bh_create',
                          }
                          
                          out<-list(stem=matrix(c(x,y),ncol=2,byrow = T),
-                                   branch=matrix(c(x1,y1,x2,y2),ncol=2,byrow=T))
+                                   branch=matrix(c(x1,y1,x,y,x2,y2),ncol=2,byrow=T))
                          return(out)
                        })
                        
@@ -173,9 +173,9 @@ methods::setMethod(f = 'bh_create',
                      
                      outLine<-lapply(skel,function(x){
                        
-                       lx<-lapply(x$branch,function(y) y[c(T,F),])
+                       lx<-lapply(x$branch,function(y) y[c(T,F,F),])
                        lx <- do.call(rbind,lx)
-                       rx<-lapply(x$branch,function(y) y[c(F,T),])
+                       rx<-lapply(x$branch,function(y) y[c(F,F,T),])
                        rx<-do.call(rbind,rev(rx))
                        out<-rbind(lx,rx)
                        # if (sum(lx[,2])>0) {
@@ -191,13 +191,13 @@ methods::setMethod(f = 'bh_create',
                      if (!sf::st_is_valid(outLine)){
                        outLine<-sf::st_make_valid(outLine)}
                      
-                     out<-list(stem = sf::st_sfc(stm),
+                     out<-list(centroid = sf::st_sfc(sf::st_point(c(0,0),dim = 'XYZ')),
+                               stem = sf::st_sfc(stm),
                                branch = sf::st_sfc(brnch),
                                outline = sf::st_sfc(outLine))
                      return(out)
                    })
 
-.rot = function(a) matrix(c(cos(a), sin(a)), ncol = 2, nrow = 1)
 
 
 
