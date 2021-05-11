@@ -5,11 +5,13 @@
 #' @export
 cellPrototype<-methods::setClass(Class = 'cellPrototype',
                                  slots = c(name = 'character',
+                                           centroid = 'genericShape_NULL',
                                            cytoplasm = 'genericShape_NULL',
                                            nucleus = 'genericShape_NULL',
                                            organelle = 'genericShape_NULL',
                                            markers = 'list'),
                                  prototype = list( name = 'aNameForThisCell',
+                                                   centroid = NULL,
                                                    cytoplasm = NULL,
                                                    nucleus = NULL,
                                                    organelle = NULL,
@@ -32,15 +34,15 @@ methods::setMethod(f = 'names<-',
 cell<-methods::setClass(Class = 'cell',
                         slots = c(name = 'character',
                                   centroid ='list',
-                                  cytoplasm = 'simpleShape',
-                                  nucleus = 'simpleShape',
-                                  organelle = 'simpleShape',
+                                  cytoplasm = 'list',
+                                  nucleus = 'list',
+                                  organelle = 'list',
                                   markers = 'list'),
                         prototype = list( name = 'aNameForThisCell',
                                           centroid = list(),
-                                          cytoplasm = new('simpleShape'),
-                                          nucleus = new('simpleShape'),
-                                          organelle = new('simpleShape'),
+                                          cytoplasm = list(),
+                                          nucleus = list(),
+                                          organelle = list(),
                                           markers = list()))
 
 methods::setMethod(f = 'names',
@@ -61,44 +63,28 @@ methods::setMethod(f = 'bh_create',
                    definition = function(x,
                                          lox,
                                          loy,
-                                         constrained = c('none','within','outside'),
-                                         constrainTo = NULL,
+                                         shrinkage,
+                                         setEscape,
                                          ...){
-                    
-                     constrained<-match.arg(constrained,several.ok = F)
-                     if (constrained!='none' & is.null(constrainTo)) constrained<-'none'
+                     
                      
                      if (!is.null(x@cytoplasm)) {
                        cytoplasm<-try(bh_create(x@cytoplasm))
                        if (inherits(cytoplasm,'try-error')) return(0)
-                       # cytoplasm<-sapply(cytoplasm,'+',c(lox,loy),simplify = F,USE.NAMES = T)
-                       cytoplasm<-bh_translate(cytoplasm,c(lox,loy))
-                       
-                       switch(constrained,
-                                         none = {},
-                                         within = {
-                                           cytoplasm<-.enclose(cytoplasm,constrainTo)
-                                         },
-                                         outside = {
-                                           cytoplasm<-.interact(cytoplasm,constrainTo)
-                                         })
-                       
+                       cytoplasm<-sapply(cytoplasm,'+',c(lox,loy),simplify = F,USE.NAMES = T)
                        newLo<-try(sf::st_point_on_surface(cytoplasm$outline))
                        if (inherits(newLo,'try-error')) return(0)
                      } else {
-                       # cytoplasm<-list()
-                       # cytoplasm$centroid<-sf::st_sfc(NULL)
-                       # cytoplasm$stem<-sf::st_sfc(NULL)
-                       # cytoplasm$branch<-sf::st_sfc(NULL)
-                       # cytoplasm$outline<-sf::st_sfc(NULL)
-                       cytoplasm<-new('simpleShape')}
+                       cytoplasm<-list()
+                       cytoplasm$centroid<-sf::st_sfc(NULL)
+                       cytoplasm$stem<-sf::st_sfc(NULL)
+                       cytoplasm$branch<-sf::st_sfc(NULL)
+                       cytoplasm$outline<-sf::st_sfc(NULL)}
                      
                      if (!is.null(x@nucleus)) {
                        nucleus<-try(bh_create(x@nucleus))
                        if (inherits(nucleus,'try-error')) return(0)
-                       
-                       nucleus<- bh_translate(nucleus,as.vector(sf::st_coordinates(newLo)))
-                       # nucleus<-sapply(nucleus,'+',newLo,simplify = F,USE.NAMES = T)
+                       nucleus<-sapply(nucleus,'+',newLo,simplify = F,USE.NAMES = T)
                        nucleus<-.enclose(nucleus,cytoplasm)
                        # cytoAndNucleus<-try(sf::st_union(cytoplasm$outline,nucleus$outline))
                        # if (inherits(cytoAndNucleus,'try-error')) return(0)
@@ -123,12 +109,11 @@ methods::setMethod(f = 'bh_create',
                        #   if (safeEscape<0) return(0)
                        # }
                      } else {
-                       # nucleus<-list()
-                       # nucleus$centroid<-sf::st_sfc(NULL)
-                       # nucleus$stem<-sf::st_sfc(NULL)
-                       # nucleus$branch<-sf::st_sfc(NULL)
-                       # nucleus$outline<-sf::st_sfc(NULL)
-                       nucleus<-new('simpleShape')}
+                       nucleus<-list()
+                       nucleus$centroid<-sf::st_sfc(NULL)
+                       nucleus$stem<-sf::st_sfc(NULL)
+                       nucleus$branch<-sf::st_sfc(NULL)
+                       nucleus$outline<-sf::st_sfc(NULL)}
                      
                      if (!is.null(x@organelle)) {
                        organelle<-try(bh_create(x@organelle))
@@ -136,12 +121,11 @@ methods::setMethod(f = 'bh_create',
                        newLo<-sf::st_point_on_surface(cytoNotNucleus)
                        organelle<-sapply(organelle,'+',c(lox,loy),simplify = F,USE.NAMES = T)
                      } else {
-                       # organelle<-list()
-                       # organelle$centroid<-sf::st_sfc(NULL)
-                       # organelle$stem<-sf::st_sfc(NULL)
-                       # organelle$branch<-sf::st_sfc(NULL)
-                       # organelle$outline<-sf::st_sfc(NULL)
-                       organelle<-new('simpleShape')}
+                       organelle<-list()
+                       organelle$centroid<-sf::st_sfc(NULL)
+                       organelle$stem<-sf::st_sfc(NULL)
+                       organelle$branch<-sf::st_sfc(NULL)
+                       organelle$outline<-sf::st_sfc(NULL)}
                      
                      
                      cntrd<-list(
@@ -175,7 +159,7 @@ bh_defineCell<-function(name = NULL,
                         organelle = NULL,
                         markers = NULL){
   
-  if (is.null(name)) stop('provide a name for this cell')
+  if (is.null(cytoplasm)) stop('provide a name for this cell')
   if (is.null(cytoplasm)) stop('a cell needs at least a cytoplasm')
   if (is.null(markers)) stop('give some markers')
   if (!is.list(markers)) stop('wrap markers in a list')

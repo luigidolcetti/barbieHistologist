@@ -1,8 +1,11 @@
 .interact<-function(x,y){
+  
   yOutline<-y$outline
   xInputStem<-x$stem
   xInputBranch<-x$branch
   xOrg<-x$centroid
+  
+  if (length(sf::st_covered_by(xOrg,yOutline)[[1]])!=0) return(0)
   
   xInputStemSep<-sf::st_cast(xInputStem,'LINESTRING')
   xTrimStemSep<-sf::st_difference(xInputStemSep,yOutline)
@@ -29,29 +32,38 @@
     shiftLineString<-((shiftLineString-xOrg[[1]])*(newLength[i]/orgLenght[i]))+xOrg[[1]]
     
     newXstem[[i]]<-shiftLineString
-    newXBranch[[i]]<-((newXBranch[[i]]-xOrg[[1]])*(newLength[i]/orgLenght[i]))+xOrg[[1]]
+    newXbranch[[i]]<-((newXbranch[[i]]-xOrg[[1]])*(newLength[i]/orgLenght[i]))+xOrg[[1]]
   }
   
   compactXstem<-sf::st_cast(newXstem,'MULTILINESTRING')
 
-  newOutline<-.envelope(newXBranch)
+  newOutline<-.envelope(newXbranch)
 
-  out<-list(centroid = xOrg,
+  # out<-list(centroid = xOrg,
+  #           stem = compactXstem,
+  #           branch = newXbranch,
+  #           outline = newOutline)
+  
+  out<-new('simpleShape',
+           centroid = xOrg,
             stem = compactXstem,
             branch = newXbranch,
             outline = newOutline)
+  
   return(out)
   }
 
 
 .enclose<-function(x,y){
-  if (length(sf::st_contains_properly(x$outline,y$outline)[[1]])!=0) return(x)
+  # if (length(sf::st_contains_properly(x$outline,y$outline)[[1]])!=0) return(x)
   if (length(sf::st_covered_by(x$centroid,y$outline))==0) return(0)
   
   xInputStem<-x$stem
   xInputBranch<-x$branch
   xOrg<-x$centroid
-  yOutline<-sf::st_cast(y$outline,'LINESTRING')
+  yOutline<-y$outline
+  
+  yOutline<-sf::st_cast(yOutline,'LINESTRING')
   
   xInputStemSep<-sf::st_cast(xInputStem,'LINESTRING')
   
@@ -88,10 +100,17 @@
   
   newOutline<-.envelope(newXbranch)
   
-  out<-list(centroid = xOrg,
-            stem = compactXstem,
-            branch = newXbranch,
-            outline = newOutline)
+  # out<-list(centroid = xOrg,
+  #           stem = compactXstem,
+  #           branch = newXbranch,
+  #           outline = newOutline)
+  
+  out<-new('simpleShape',
+           centroid = xOrg,
+                stem = compactXstem,
+                branch = newXbranch,
+                outline = newOutline)
+  
   return(out)
   
 }

@@ -76,6 +76,34 @@ methods::setMethod('initialize',
                      .Object
                    })
 
+#' @export
+simpleShape<-methods::setClass(Class = 'simpleShape',
+                                contains = 'list')
+
+
+#' @export
+methods::setMethod('initialize',
+                   'simpleShape',
+                   function(.Object,
+                            centroid = sf::st_sfc(NULL),
+                            stem = sf::st_sfc(NULL),
+                            branch = sf::st_sfc(NULL),
+                            outline = sf::st_sfc(NULL),
+                            ...){
+                     .Object <- methods::callNextMethod(.Object, ...)
+                     .Object <- list(centroid = centroid,
+                                     stem = stem,
+                                     branch = branch,
+                                     outline = outline)
+                     attr(.Object,'class')<-'simpleShape'
+                     attr(attr(.Object,'class'),'package')<-'barbieHistologist'
+                     return(.Object)
+                   })
+
+
+
+
+
 #' Object instantiation
 #' 
 #' The method bh_create cast a real shape or cell from a prototype.
@@ -191,10 +219,17 @@ methods::setMethod(f = 'bh_create',
                      if (!sf::st_is_valid(outLine)){
                        outLine<-sf::st_make_valid(outLine)}
                      
-                     out<-list(centroid = sf::st_sfc(sf::st_point(c(0,0),dim = 'XYZ')),
+                     # out<-list(centroid = sf::st_sfc(sf::st_point(c(0,0),dim = 'XYZ')),
+                     #           stem = sf::st_sfc(stm),
+                     #           branch = sf::st_sfc(brnch),
+                     #           outline = sf::st_sfc(outLine))
+                     
+                     out<-new('simpleShape',centroid = sf::st_sfc(sf::st_point(c(0,0))),
                                stem = sf::st_sfc(stm),
                                branch = sf::st_sfc(brnch),
                                outline = sf::st_sfc(outLine))
+                     
+                     
                      return(out)
                    })
 

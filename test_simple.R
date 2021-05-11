@@ -1,11 +1,11 @@
 library(barbieHistologist)
 cytop2<-bh_defineShape(majorAxis = c(6,1),
                        minorAxis = c(6,1),
-                       roundness = c(0.5,0),
-                       nArms = 40,
+                       roundness = c(1,0),
+                       nArms = 8,
                        fixedArms = T,
-                       armExt = c(3,0.1),
-                       armElbow = 6,
+                       armExt = c(5,0.1),
+                       armElbow = 4,
                        armSwing = 1,
                        armTrig = c(-0.33,0.1))
 nuc1<-bh_defineShape(majorAxis = c(5,0.1),
@@ -72,5 +72,31 @@ TEMP5<-bh_defineCell(name = 'aaa',
                      markers = list(CD45))
 
 TEMP6<-bh_create(TEMP5,lox=1,loy=1)
+TEMP7<-bh_create(TEMP5,lox=15,loy=1,constrained='outside',constrainTo=TEMP6@cytoplasm)
 plot(TEMP6@cytoplasm$outline)
 plot(TEMP6@nucleus$outline,add=T)
+plot(TEMP7@cytoplasm$outline,add=T)
+plot(TEMP7@nucleus$outline,add=T)
+
+TEMP_tissue<-bh_defineTissue(coords = c(0,100,0,100),
+                             resolution = c(1,1),
+                             bg = 0,
+                             markers = list(CD45))
+
+
+TEMP8<-bh_populate_byInteract(cellPrototype = list(TEMP5),
+                              proportion = 1,
+                              tissue = TEMP_tissue,
+                              cropToMesure = T,
+                              areaTresh = 0.50)
+
+TEMP8<-bh_populate_byClip(cellPrototype = list(TEMP5),
+                              proportion = 1,
+                          maxCloning = 3,
+                          
+                              tissue = TEMP_tissue,
+                              cropToMesure = T,
+                              areaTresh = 0.1)
+
+GEOM_list<-bh_asSFC(cells = TEMP8)
+plot(GEOM_list)

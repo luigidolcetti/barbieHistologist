@@ -16,5 +16,6 @@
   outLine<-sf::st_buffer(outLine,0)
   if (!sf::st_is_valid(outLine)){
     outLine<-sf::st_make_valid(outLine)}
+  outLine<-sf::st_sfc(outLine)
   return(outLine)
 }

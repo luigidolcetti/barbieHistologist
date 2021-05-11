@@ -120,7 +120,10 @@ bh_engrave<-function(tissue = NULL,
           newCall<-rlang::call_modify(cell@markers[[i]]@pattern,xy=cellTiles[[compartment]][,1:2])
           newTiles<-eval(newCall)
           newTiles[newTiles[,3]<0,3]<-0
-          tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-newTiles[,3]*cellTiles[[compartment]][,3]
+          # tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-newTiles[,3]*cellTiles[[compartment]][,3]
+          
+          tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])]<-tissue[[lyr]][raster::cellFromXY(tissue[[lyr]],newTiles[,1:2])] + newTiles[,3]*cellTiles[[compartment]][,3]
+          
         }
       }
     }
