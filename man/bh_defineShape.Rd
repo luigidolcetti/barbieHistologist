@@ -26,7 +26,7 @@ bh_defineShape(
 rpois to obtain the actual number of arms.}
 
 \item{armExt}{numeric, mean and sd pair. Proportion of the major axis.
-E.g. if major axis is 10 AU and arm extent is 1.5 the total lenght of 
+E.g. if major axis is 10 AU and arm extent is 1.5 the total lenght of
 the arm will be approx 15 AU with the branching starting after 10 AU.}
 
 \item{armSwing}{numeric, arm swinging extent in degree.}

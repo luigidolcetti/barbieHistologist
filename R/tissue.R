@@ -1,7 +1,10 @@
 #' @import raster
+
+NULL
+
+#' Tissue
 #' 
-#' 
-#' 
+#' A tissue is essentialy a RasterStack object, for more info **[raster::raster]**
 #' @export
 tissue<-methods::setClass(Class = 'tissue',
                           contains = 'RasterStack')
@@ -47,11 +50,11 @@ methods::setMethod('initialize',
 #' Define a new tissue
 #' 
 #' helper function to create a new tissue.
-#' @param coords numeric, x and y limits.
-#' @param resolution numeric, resolution
-#' @param bg numeric, value to use in the background
+#' @param coords numeric vector, x and y limits... like (xMin,xMax,yMin,yMax).
+#' @param resolution numeric vector, resolution on x and y.
+#' @param bg numeric scalar, value to use in the background
 #' @param markers list, makers.
-#' @return An object of class tissue (a rasterStack).
+#' @return An object of class **[tissue]**.
 #' @export
 bh_defineTissue<-function(coords = NULL,
                           resolution = NULL,
@@ -86,8 +89,14 @@ bh_defineTissue<-function(coords = NULL,
 
 
 
-
-
+#' Define a new tissue
+#' 
+#' helper function to create a new tissue.
+#' @param coords numeric vector, x and y limits... like (xMin,xMax,yMin,yMax).
+#' @param resolution numeric vector, resolution on x and y.
+#' @param bg numeric scalar, value to use in the background
+#' @param markers list, makers.
+#' @return An object of class **[tissue]**.
 #' @export
 bh_engrave<-function(tissue = NULL,
                      cells = NULL){

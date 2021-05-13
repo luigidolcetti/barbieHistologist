@@ -12,7 +12,7 @@
   newSfc<-vector('list',length(xInputStemSep))
   for (i in 1:length(xTrimStemSep)){
     if (sf::st_geometry_type(xTrimStemSep[[i]])=='MULTILINESTRING'){
-      TEMP<-sf::st_cast(sf::st_sfc(xTrimStemSep[[i]]),'LINESTRING')
+      TEMP<-sf::st_cast(sf::st_sfc(xTrimStemSep[[i]],crs = 'NA'),'LINESTRING')
       TEMP_which<-which(sf::st_intersects(xOrg,TEMP,sparse = F))
       newSfc[[i]]<-TEMP[[TEMP_which]]
     } else {
@@ -20,7 +20,7 @@
     }
   }
   
-  xTrimStemSep<-sf::st_sfc(newSfc)
+  xTrimStemSep<-sf::st_sfc(newSfc,crs = 'NA')
   orgLenght<-sf::st_length(xInputStemSep)
   newLength<-sf::st_length(xTrimStemSep)
   
@@ -77,7 +77,7 @@
     xInputStempIntersect<-sf::st_intersection(xISS,yOutline)
     if (length(xInputStempIntersect)==0) newLength<-oldLength else {
       
-      xInputStempIntersect<-sf::st_cast(sf::st_sfc(xInputStempIntersect),'POINT')
+      xInputStempIntersect<-sf::st_cast(sf::st_sfc(xInputStempIntersect,crs = 'NA'),'POINT')
       dst<-sf::st_distance(x$centroid,xInputStempIntersect)
       newLength<-min(dst)
     }
@@ -88,13 +88,13 @@
     ((xInputBranch[[i]]-xOrg[[1]])*(capLength[[i]]$new/capLength[[i]]$old))+xOrg[[1]]
   })
   
-  newXbranch<-sf::st_sfc(newXbranch)
+  newXbranch<-sf::st_sfc(newXbranch,crs = 'NA')
   
   newXstem<-lapply(1:length(xInputStemSep),function(i){
     ((xInputStemSep[[i]]-xOrg[[1]])*(capLength[[i]]$new/capLength[[i]]$old))+xOrg[[1]]
   })
   
-  compactXstem<-sf::st_sfc(newXstem)
+  compactXstem<-sf::st_sfc(newXstem,crs = 'NA')
   compactXstem<-sf::st_cast(compactXstem,'MULTILINESTRING')
   
   

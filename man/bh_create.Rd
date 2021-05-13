@@ -15,8 +15,8 @@ bh_create(x, ...)
 where to drop the cell}
 }
 \value{
-a list containing an istantiation of a genericShape or an 
-  an object of class cell.
+a list containing an istantiation of a genericShape or an
+an object of class cell.
 }
 \description{
 The method bh_create cast a real shape or cell from a prototype.

@@ -14,8 +14,9 @@
   outLine<-rbind(outLine,outLine[1,])
   outLine<-sf::st_polygon(list(outLine))
   outLine<-sf::st_buffer(outLine,0)
+  outLine<-nngeo::st_remove_holes(outLine)
   if (!sf::st_is_valid(outLine)){
     outLine<-sf::st_make_valid(outLine)}
-  outLine<-sf::st_sfc(outLine)
+  outLine<-sf::st_sfc(outLine,crs = 'NA')
   return(outLine)
 }

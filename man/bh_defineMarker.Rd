@@ -24,7 +24,7 @@ those coming in the package e.g. .pattern.skin() ore a custom function.}
 
 \item{patternModifier}{named list, a list of parameters (e.g. mean, sd, tresh)
 that specify new values. Parameters names must match those of the original
-function. xy parameter is excluded because this parameter is passed 
+function. xy parameter is excluded because this parameter is passed
 automatically at the moment of taking a picture.}
 
 \item{compartment}{character, one among cytoplasm, nucleus or organelle

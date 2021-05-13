@@ -7,16 +7,16 @@
 bh_defineTissue(coords = NULL, resolution = NULL, bg = NULL, markers = NULL)
 }
 \arguments{
-\item{coords}{numeric, x and y limits.}
+\item{coords}{numeric vector, x and y limits... like (xMin,xMax,yMin,yMax).}
 
-\item{resolution}{numeric, resolution}
+\item{resolution}{numeric vector, resolution on x and y.}
 
-\item{bg}{numeric, value to use in the background}
+\item{bg}{numeric scalar, value to use in the background}
 
 \item{markers}{list, makers.}
 }
 \value{
-An object of class tissue (a rasterStack).
+An object of class \strong{\link{tissue}}.
 }
 \description{
 helper function to create a new tissue.

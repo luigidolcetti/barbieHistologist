@@ -214,6 +214,7 @@ methods::setMethod(f = 'bh_create',
                      outLine<-rbind(outLine,outLine[1,])
                      outLine<-sf::st_polygon(list(outLine))
                      outLine<-sf::st_buffer(outLine,0)
+                     outLine<-nngeo::st_remove_holes(outLine)
                      # outLine<-sf::st_buffer(outLine,MA/10)
                      # outLine<-sf::st_buffer(outLine,-MA/10)
                      if (!sf::st_is_valid(outLine)){
@@ -224,10 +225,10 @@ methods::setMethod(f = 'bh_create',
                      #           branch = sf::st_sfc(brnch),
                      #           outline = sf::st_sfc(outLine))
                      
-                     out<-new('simpleShape',centroid = sf::st_sfc(sf::st_point(c(0,0))),
-                               stem = sf::st_sfc(stm),
-                               branch = sf::st_sfc(brnch),
-                               outline = sf::st_sfc(outLine))
+                     out<-new('simpleShape',centroid = sf::st_sfc(sf::st_point(c(0,0)),crs = 'NA'),
+                               stem = sf::st_sfc(stm,crs = 'NA'),
+                               branch = sf::st_sfc(brnch,crs = 'NA'),
+                               outline = sf::st_sfc(outLine,crs = 'NA'))
                      
                      
                      return(out)

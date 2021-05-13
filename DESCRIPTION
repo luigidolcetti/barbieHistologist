@@ -26,3 +26,4 @@ Collate:
     'populate.R'
     'tissue.R'
     'transformations.R'
+Roxygen: list(markdown = TRUE)
