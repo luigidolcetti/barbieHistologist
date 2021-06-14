@@ -226,7 +226,7 @@ bh_extractFamily<-function(family = NULL,
   if (!is.character(sfcPrimaryKey)) stop('primary key must be character')
   
   sfc<-sfc[!sf::st_is_empty(sfc),]
-  sfc<-sfc[sf::st_geometry_type(sfc)=='POLYGON',]
+  sfc<-sfc[sf::st_geometry_type(sfc)=='POLYGON' | sf::st_geometry_type(sfc)=='MULTIPOLYGON',]
   
   out<-exactextractr::exact_extract(x = family,
                                     y = sfc,
