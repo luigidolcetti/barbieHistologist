@@ -112,12 +112,14 @@ bh_engrave<-function(tissue = NULL,
                         'organelle'),
                       function(comp){
                         
-                        newComp<-try(slot(cell,comp)$outline)
+                        newComp<-slot(cell,comp)$outline
                         
-                        if (!sf::st_is_empty(newComp) & sf::st_is(newComp,c('POLYGON','MULTIPOLYGON'))){
-                          cellTiles<-exactextractr::exact_extract(tissue,sf::st_sf(newComp),include_xy=T)
-                          cellTiles<-do.call(rbind,cellTiles)
-                          cellTiles<-cellTiles[,c('x','y','coverage_fraction')]
+                        if (length(newComp)!=0) {
+                          if (!sf::st_is_empty(newComp) & sf::st_is(newComp,c('POLYGON','MULTIPOLYGON'))){
+                            cellTiles<-exactextractr::exact_extract(tissue,sf::st_sf(newComp),include_xy=T)
+                            cellTiles<-do.call(rbind,cellTiles)
+                            cellTiles<-cellTiles[,c('x','y','coverage_fraction')]
+                          }
                         }
                       },simplify = F,USE.NAMES = T)
     
@@ -247,11 +249,11 @@ bh_extractFamily<-function(family = NULL,
   
   out<-lapply(1:length(out),function(i){
     data.frame(sfcClean[i,sfcPrimaryKey],
-                     out[[i]])
-    })
+               out[[i]])
+  })
   
   out<-do.call(rbind.data.frame,out)
   names(out)[1]<-sfcPrimaryKey
-    
+  
   return(out)
 }

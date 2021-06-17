@@ -265,11 +265,7 @@ bh_populate_byClip<-function(cellPrototype = NULL,
           newGeom<-newGeom[maxStArea,]
         }
       }
-      # test<-try (if(sf::st_geometry_type(newGeom)!='POLYGON' & length(newGeom)!=0) test<-0) 
-      # if (inherits(test,'try-error')) browser()  
-      # {
-      # # browser()
-      # newGeom<-sf::st_sfc(NULL)}
+     
       
       if (length(sf::st_geometry_type(newGeom))==0) newGeom<-sf::st_sfc(NULL)
       
@@ -398,6 +394,29 @@ bh_populate_byInteract<-function(cellPrototype = NULL,
       cat('XX-> bad cell\n')
       next}
     
+    if (require_cytoplasm){
+      test<-slot(newCell,'cytoplasm')$outline
+      if (length(test)==0) {cat('XX-> no cytoplasm\n'); next}
+      if (is.null(test)) {cat('XX-> no cytoplasm\n'); next}
+      if (sf::st_is_empty(test)) {cat('XX-> no cytoplasm\n'); next}
+    }
+    
+    if (require_nucleus){
+      test<-slot(newCell,'nucleus')$outline
+      if (length(test)==0)  {cat('XX-> no nucleus\n'); next}
+      if (is.null(test))  {cat('XX-> no nucleus\n'); next}
+      if (sf::st_is_empty(test))  {cat('XX-> no nucleus\n'); next}
+     
+    }
+    
+    if (require_organelle){
+      test<-slot(newCell,'organelle')$outline
+      if (length(test)==0) {cat('XX-> no organelle\n'); next}
+      if (is.null(test)) {cat('XX-> no organelle\n'); next}
+      if (sf::st_is_empty(test)) {cat('XX-> no organelle\n'); next}
+      
+    }
+    
     blob<-try(sf::st_union(blob,newCell@cytoplasm$outline))
     if (inherits(blob,'try-error')){
       cat('XX-> bad blob union\n')
@@ -449,12 +468,15 @@ bh_populate_byInteract<-function(cellPrototype = NULL,
       for (ii in seq_along(out_newCellList[[i]])){
         if (!sf::st_is_empty(out_newCellList[[i]][[ii]]@nucleus$outline)){
           out_newCellList[[i]][[ii]]@nucleus$outline<-sf::st_crop(out_newCellList[[i]][[ii]]@nucleus$outline,lim)
-        }
+          if (length(out_newCellList[[i]][[ii]]@nucleus$outline)==0) out_newCellList[[i]][[ii]]@nucleus$outline<-sf::st_sfc(NULL)
+          }
         if (!sf::st_is_empty(out_newCellList[[i]][[ii]]@cytoplasm$outline)){
           out_newCellList[[i]][[ii]]@cytoplasm$outline<-sf::st_crop(out_newCellList[[i]][[ii]]@cytoplasm$outline,lim)
+          if (length(out_newCellList[[i]][[ii]]@cytoplasm$outline)==0) out_newCellList[[i]][[ii]]@cytoplasm$outline<-sf::st_sfc(NULL)
         }
         if (!sf::st_is_empty(out_newCellList[[i]][[ii]]@organelle$outline)){
           out_newCellList[[i]][[ii]]@organelle$outline<-sf::st_crop(out_newCellList[[i]][[ii]]@organelle$outline,lim)
+          if (length(out_newCellList[[i]][[ii]]@organelle$outline)==0) out_newCellList[[i]][[ii]]@organelle$outline<-sf::st_sfc(NULL)
         }
       }
     }

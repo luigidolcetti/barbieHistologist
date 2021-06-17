@@ -64,7 +64,7 @@ methods::setMethod(f = 'bh_create',
                                          constrained = c('none','within','outside'),
                                          constrainTo = NULL,
                                          ...){
-                    
+                     
                      constrained<-match.arg(constrained,several.ok = F)
                      if (constrained!='none' & is.null(constrainTo)) constrained<-'none'
                      
@@ -75,13 +75,13 @@ methods::setMethod(f = 'bh_create',
                        cytoplasm<-bh_translate(cytoplasm,c(lox,loy))
                        
                        switch(constrained,
-                                         none = {},
-                                         within = {
-                                           cytoplasm<-.enclose(cytoplasm,constrainTo)
-                                         },
-                                         outside = {
-                                           cytoplasm<-.interact(cytoplasm,constrainTo)
-                                         })
+                              none = {},
+                              within = {
+                                cytoplasm<-.enclose(cytoplasm,constrainTo)
+                              },
+                              outside = {
+                                cytoplasm<-.interact(cytoplasm,constrainTo)
+                              })
                        
                        newLo<-try(sf::st_point_on_surface(cytoplasm$outline))
                        if (inherits(newLo,'try-error')) return(0)
@@ -100,6 +100,9 @@ methods::setMethod(f = 'bh_create',
                        nucleus<- bh_translate(nucleus,as.vector(sf::st_coordinates(newLo)))
                        # nucleus<-sapply(nucleus,'+',newLo,simplify = F,USE.NAMES = T)
                        nucleus<-.enclose(nucleus,cytoplasm)
+                       
+                       
+                       
                        # cytoAndNucleus<-try(sf::st_union(cytoplasm$outline,nucleus$outline))
                        # if (inherits(cytoAndNucleus,'try-error')) return(0)
                        # area_cytoplasm<-sf::st_area(cytoplasm$outline)
@@ -157,6 +160,9 @@ methods::setMethod(f = 'bh_create',
                                   nucleus = nucleus,
                                   organelle = organelle,
                                   markers = x@markers)
+                     
+                    
+                     return(newCell)
                      
                    })
 

@@ -36,13 +36,15 @@ bh_asSFC<-function(cells=NULL){
       newCell<-c(cells[[wc]][[ic]]@nucleus$outline,
                  cells[[wc]][[ic]]@cytoplasm$outline,
                  cells[[wc]][[ic]]@organelle$outline)
-      newcell<-sf::st_sf(cell=whatCells[[wc]],
+
+            newcell<-sf::st_sf(cell=whatCells[[wc]],
                          ID = paste0(whatCells[[wc]],'_',ic),
                          compartment=c('nucleus','cytoplasm','organelle'),
                          geometry=newCell)
     })
     return(out)
   })
+  
   out<-do.call(dplyr::bind_rows,out)
   seqid<-1:length(unique(out$ID))
   seqMultiplier<-rle(as.character(out$ID))
